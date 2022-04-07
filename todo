@@ -14,17 +14,3 @@ High priority:
 Medium priority: 
  ☐ Model for Pair, Nat, Function
 
-types for *dispatch*, type-directed dispatch 
-  - do something to an object depending on its type
-  - word needs to convey: sorting + doing
-types for prediction
-  - knowing what you can do with things
-  - predicting things like "is this going to be well-defined"
-  - what are the types of terms formed from these types
-  - what theorems are true for these terms?
-types for analysis 
-formation restriction applies to grammar-like things
-
-contributions:
- ☐ new feature of Isabelle for relativizing 
- ☐ lifting and transfer wisdom

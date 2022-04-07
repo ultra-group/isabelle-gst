@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><link rel="stylesheet" type="text/css" href="isabelle.css"/>
+<title>Theory ModelComponents</title>
+</head>
+
+
+<body>
+<div class="head">
+<h1>Theory ModelComponents</h1>
+</div>
+
+<pre class="source"><span class="keyword1"><span class="command"><span>theory</span></span></span><span> </span><span>ModelComponents</span><span>
+  </span><span class="keyword2"><span class="keyword"><span>imports</span></span></span><span> </span><a href="ConnectionBase.html"><span>ConnectionBase</span></a><span>
+  </span><span class="keyword2"><span class="keyword"><span>keywords</span></span></span><span> </span><span class="quoted"><span>"</span><span>translate_axioms</span><span>"</span></span><span> </span><span class="quoted"><span>"</span><span>resp_thms</span><span>"</span></span><span> </span><span class="main"><span>::</span></span><span> thy_goal 
+</span><span class="keyword2"><span class="keyword"><span>begin</span></span></span><span>
+
+</span><span class="keyword1"><span class="command"><span>context</span></span></span><span> </span><a class="entity_ref" href="ModelBase.html#ModelBase.ModelBase|locale"><span>ModelBase</span></a><span> </span><span class="keyword2"><span class="keyword"><span>begin</span></span></span><span>
+</span><span class="keyword1"><span class="command"><span>ML_file</span></span></span><span> </span><span class="quoted"><span>‹</span><span>Tools/model_components.ML</span><span>›</span></span><span>
+</span><span class="keyword1"><span class="command"><span>ML_file</span></span></span><span> </span><span class="quoted"><span>‹</span><span>Tools/translate_axioms.ML</span><span>›</span></span><span>
+</span><span class="keyword2"><span class="keyword"><span>end</span></span></span><span>
+</span><span class="comment1"><span>(</span><span>*</span><span> ML ‹val ord_model = mcomp 
+ { name = "OrdModel", 
+   deps = [], 
+   variant = SOME (vari 
+    { tag_name = "ord",
+      vcases = 
+        (@{term ‹{0}›}, 
+         @{term "(λj x. {j}) :: 'a ⇒ 'a ⇒ 'a"}, 
+         @{term "(λμ f. {μ}) :: 'a ⇒ 'a ⇒ 'a"}),
+      alpha_typ = @{term ‹Ord›}})} ›
+
+ML ‹val ordrec_model = mcomp 
+ { name = "OrdRecModel", 
+   deps = ["SetModel","OrdModel"], 
+   variant = NONE } ›
+
+ML ‹val pair_model = mcomp 
+ { name = "PairModel", 
+   deps = [], 
+   variant = SOME (vari 
+    { tag_name = "opair",
+      vcases = 
+        (@{term ‹∅›}, 
+         @{term "(λj x. x × x) :: 'a ⇒ 'a ⇒ 'a"}, 
+         @{term "(λμ f. ∅) :: 'a ⇒ 'a ⇒ 'a"}),
+      alpha_typ = @{term ‹Pair›}}) } ›
+
+ML ‹val nat_model = mcomp
+ { name = "NatModel", 
+   deps = [], 
+   variant = SOME (vari 
+    { tag_name = "nat",
+      vcases = 
+        (@{term "{0}"},
+         @{term "(λβ x. if β &lt; ω then {β} else ∅) :: 'a ⇒ 'a ⇒ 'a"},
+         @{term "(λμ f. ∅) :: 'a ⇒ 'a ⇒ 'a"}),
+      alpha_typ = @{term ‹Ord›}})}› </span><span>*</span><span>)</span></span><span>
+
+</span><span class="comment1"><span>(</span><span>*</span><span>Probably don't need?</span><span>*</span><span>)</span></span><span>
+</span><span class="keyword1"><span class="command"><span>ML_file</span></span></span><span> </span><span class="quoted"><span>‹</span><span>Tools/connection_locales.ML</span><span>›</span></span><span>
+
+</span><span class="keyword1"><span class="command"><span>text</span></span></span><span> </span><span class="quoted"><span class="plain_text"><span>‹</span><span>Generating type-classes for models components,
+</span><span>      and locales for connecting model components to domains</span><span>›</span></span></span><span>
+
+</span><span class="comment1"><span>(</span><span>*</span><span> No longer needed, using lifting &amp; transfer now.
+ML_file ‹swap_transfer.ML› </span><span>*</span><span>)</span></span><span>
+
+
+
+</span><span class="keyword2"><span class="keyword"><span>end</span></span></span><span>
+
+
+</span><span class="comment1"><span>(</span><span>*</span><span> local_setup ‹snd o (mk_mcomp_class ord_model)›
+local_setup ‹snd o (mk_connection_locale @{theory} ord_model)›
+
+local_setup ‹snd o (mk_mcomp_class ordrec_model)›
+local_setup ‹snd o (mk_connection_locale @{theory} ordrec_model)›
+
+local_setup ‹snd o (mk_mcomp_class pair_model)›
+local_setup ‹snd o (mk_connection_locale @{theory} pair_model)›
+
+local_setup ‹snd o (mk_mcomp_class nat_model)›
+local_setup ‹snd o (mk_connection_locale @{theory} nat_model)›  </span><span>*</span><span>)</span></span></pre>
+</body>
+
+</html>

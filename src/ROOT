@@ -1,0 +1,17 @@
+chapter GST
+session GST = "HOL-Eisbach" +
+  description 
+    "A framework for building Generalized Set Theories in Isabelle/HOL"
+  options 
+    [browser_info    = true, 
+     document_output = "../html/"]
+  directories
+    Functions
+    GZF
+    "GZF/Model"
+    ModelKit
+    OPair
+    Ordinal
+  theories 
+    "GZF/Model/GZF_Model"
+  

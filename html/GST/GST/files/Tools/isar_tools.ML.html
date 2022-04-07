@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><link rel="stylesheet" type="text/css" href="isabelle.css"/>
+<title>File ‹Tools/isar_tools.ML›</title>
+</head>
+
+
+<body>
+<div class="head">
+<h1>File ‹Tools/isar_tools.ML›</h1>
+</div>
+
+<pre class="source"><span class="comment1">(*Various functions for interacting with Isar*)</span>
+
+<span class="comment1">(*Alias for getting background theory of context*)</span>
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">get_thy</span> <span class="entity">ctxt</span> <span class="main">=</span> Proof_Context.theory_of <span class="entity">ctxt</span>
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">get_ctxt</span> <span class="entity">thy</span> <span class="main">=</span> Proof_Context.init_global <span class="entity">thy</span>
+
+<span class="comment1">(*Defines ‹name ≡ trm› in lthy*)</span>
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">make_defn_trm</span> <span class="entity">name</span> <span class="entity">trm</span> <span class="entity">mx</span> <span class="entity">lthy</span> <span class="main">=</span> <span class="keyword2"><span class="keyword">let</span></span>
+  <span class="keyword1"><span class="keyword">val</span></span> <span class="entity">binding_const</span> <span class="main">=</span> <span class="main">(</span>Binding.name <span class="entity">name</span><span class="main">,</span> <span class="entity">mx</span><span class="main">)</span>
+  <span class="keyword1"><span class="keyword">val</span></span> <span class="entity">binding_fact</span> <span class="main">=</span> <span class="main">(</span>Binding.name <span class="main">(</span><span class="entity">name</span> ^ <span class="inner_quoted">"_def"</span><span class="main">)</span><span class="main">,</span> <span class="main">[</span><span class="main">]</span><span class="main">)</span>
+  <span class="keyword1"><span class="keyword">val</span></span> <span class="entity">arg</span> <span class="main">=</span> <span class="main">(</span><span class="entity">binding_const</span><span class="main">,</span> <span class="main">(</span><span class="entity">binding_fact</span><span class="main">,</span> <span class="entity">trm</span><span class="main">)</span><span class="main">)</span>
+  <span class="keyword1"><span class="keyword">val</span></span> <span class="main">(</span><span class="main">(</span><span class="entity">trm</span><span class="main">,</span> <span class="main">(</span><span class="main">_</span> <span class="main">,</span> <span class="main">_</span><span class="main">)</span><span class="main">)</span><span class="main">,</span> <span class="entity">lthy'</span><span class="main">)</span> <span class="main">=</span> Local_Theory.define <span class="entity">arg</span> <span class="entity">lthy</span>
+  <span class="keyword2"><span class="keyword">in</span></span> <span class="main">(</span><span class="entity">trm</span><span class="main">,</span><span class="entity">lthy'</span><span class="main">)</span> <span class="keyword2"><span class="keyword">end</span></span>
+
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">make_defn</span> <span class="entity">name</span> <span class="entity">trm</span> <span class="entity">mx</span> <span class="main">=</span> snd o <span class="entity">make_defn_trm</span> <span class="entity">name</span> <span class="entity">trm</span> <span class="entity">mx</span>
+ 
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">make_defns_trms</span> <span class="entity">lthy</span> <span class="main">=</span> 
+  List.foldl <span class="main">(</span><span class="keyword1"><span class="keyword">fn</span></span> <span class="main">(</span><span class="main">(</span><span class="entity">iden</span><span class="main">,</span> <span class="entity">trm</span><span class="main">,</span> <span class="entity">mx</span><span class="main">)</span><span class="main">,</span> <span class="main">(</span><span class="entity">ts</span><span class="main">,</span><span class="entity">lthy</span><span class="main">)</span><span class="main">)</span> <span class="main">=&gt;</span> 
+      <span class="keyword2"><span class="keyword">let</span></span> <span class="keyword1"><span class="keyword">val</span></span> <span class="main">(</span><span class="entity">trm</span><span class="main">,</span> <span class="entity">lthy'</span><span class="main">)</span> <span class="main">=</span> <span class="entity">make_defn_trm</span> <span class="entity">iden</span> <span class="entity">trm</span> <span class="entity">mx</span> <span class="entity">lthy</span>
+      <span class="keyword2"><span class="keyword">in</span></span> <span class="main">(</span><span class="entity">trm</span> :: <span class="entity">ts</span><span class="main">,</span> <span class="entity">lthy'</span><span class="main">)</span> <span class="keyword2"><span class="keyword">end</span></span><span class="main">)</span> <span class="main">(</span><span class="main">[</span><span class="main">]</span><span class="main">,</span><span class="entity">lthy</span><span class="main">)</span>
+
+<span class="comment1">(*Defines a list of triples of (name,trm,mx)*)</span>
+<span class="keyword1"><span class="keyword">val</span></span> <span class="entity">make_defns</span> <span class="main">=</span> List.foldl <span class="main">(</span><span class="keyword1"><span class="keyword">fn</span></span> <span class="main">(</span><span class="main">(</span><span class="entity">iden</span><span class="main">,</span> <span class="entity">trm</span><span class="main">,</span> <span class="entity">mx</span><span class="main">)</span><span class="main">,</span> <span class="entity">lthy</span><span class="main">)</span> <span class="main">=&gt;</span> <span class="entity">make_defn</span> <span class="entity">iden</span> <span class="entity">trm</span> <span class="entity">mx</span> <span class="entity">lthy</span><span class="main">)</span>
+
+<span class="comment1">(*Various aliases for creating values of type mixfix*)</span>
+<span class="keyword1"><span class="keyword">val</span></span> <span class="entity">nsyn</span> <span class="main">=</span> Mixfix.NoSyn 
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">mk_mixfix</span> <span class="main">(</span><span class="entity">str</span><span class="main">,</span> <span class="entity">ns</span><span class="main">,</span> <span class="entity">m</span><span class="main">)</span> <span class="main">=</span> Mixfix.Mixfix <span class="main">(</span>Input.string <span class="entity">str</span><span class="main">,</span> <span class="entity">ns</span><span class="main">,</span> <span class="entity">m</span><span class="main">,</span> Position.no_range<span class="main">)</span>
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">mk_sym</span> <span class="main">(</span><span class="entity">str</span><span class="main">)</span> <span class="main">=</span> <span class="entity">mk_mixfix</span> <span class="main">(</span><span class="entity">str</span><span class="main">,</span> <span class="main">[</span><span class="main">]</span><span class="main">,</span> <span class="inner_numeral">1000</span><span class="main">)</span>
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">mk_infix</span> <span class="main">(</span><span class="entity">str</span><span class="main">,</span> <span class="entity">pr</span><span class="main">)</span> <span class="main">=</span> Mixfix.Infixl <span class="main">(</span>Input.string <span class="entity">str</span><span class="main">,</span> <span class="entity">pr</span><span class="main">,</span> Position.no_range<span class="main">)</span>
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">mk_infixl</span> <span class="main">(</span><span class="entity">str</span><span class="main">,</span> <span class="entity">pr</span><span class="main">)</span> <span class="main">=</span> Mixfix.Infixl <span class="main">(</span>Input.string <span class="entity">str</span><span class="main">,</span> <span class="entity">pr</span><span class="main">,</span> Position.no_range<span class="main">)</span>
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">mk_infixr</span> <span class="main">(</span><span class="entity">str</span><span class="main">,</span> <span class="entity">pr</span><span class="main">)</span> <span class="main">=</span> Mixfix.Infixr <span class="main">(</span>Input.string <span class="entity">str</span><span class="main">,</span> <span class="entity">pr</span><span class="main">,</span> Position.no_range<span class="main">)</span>
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">mk_binder</span> <span class="main">(</span><span class="entity">str</span><span class="main">,</span> <span class="entity">pr1</span><span class="main">,</span> <span class="entity">pr2</span><span class="main">)</span> <span class="main">=</span> Mixfix.Binder <span class="main">(</span>Input.string <span class="entity">str</span><span class="main">,</span> <span class="entity">pr1</span><span class="main">,</span> <span class="entity">pr2</span><span class="main">,</span> Position.no_range<span class="main">)</span></pre>
+</body>
+
+</html>

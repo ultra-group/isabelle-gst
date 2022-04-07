@@ -17,7 +17,7 @@ This development extends Isabelle/HOL with a framework for:
 **Sets** capture the notion of a *collection of mathematical objects*.
   - In Isabelle/HOL: for every type `α` there is the type 
       [`set α`](https://isabelle.in.tum.de/library/HOL/HOL/Set.html#Set.set|type)
-    which is essentially the type of unary predicates on `alpha` (i.e., `α ⇒ bool`).   
+    which is essentially the type of unary predicates on `alpha` (i.e., `α ⇒ bool`).
     In this context, a set is any member of a type `set α`, for some type `α`.
 
   - In Isabelle/ZF: there is a type 

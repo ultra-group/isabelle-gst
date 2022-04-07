@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><link rel="stylesheet" type="text/css" href="isabelle.css"/>
+<title>File ‹Tools/connection_locales.ML›</title>
+</head>
+
+
+<body>
+<div class="head">
+<h1>File ‹Tools/connection_locales.ML›</h1>
+</div>
+
+<pre class="source"><span class="comment1">(*TODO: 
+  - Connection locales should come with pre-defined 'swapped' constants! constant names ? ? 
+  - Every Connection locale should open the 'lifting_syntax' bundle. Unsure if possible? 
+ *)</span>
+
+<span class="comment1">(*------ Generating connection locales -------*)</span>
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">get_connection_deps</span> <span class="main">_</span>   <span class="main">[</span><span class="main">]</span> <span class="main">=</span> <span class="main">[</span><span class="antiquoted"><span class="antiquote">@{</span><span class="operator">locale</span> ConnectionBase<span class="antiquote">}</span></span><span class="main">]</span>
+  <span class="main">|</span> <span class="entity">get_connection_deps</span> <span class="entity">thy</span> <span class="entity">ds</span> <span class="main">=</span> map <span class="main">(</span><span class="entity">get_locale</span> <span class="entity">thy</span> o <span class="main">(</span><span class="keyword1"><span class="keyword">fn</span></span> <span class="entity">loc</span> <span class="main">=&gt;</span> <span class="entity">loc</span> ^ <span class="inner_quoted">"Connection"</span><span class="main">)</span><span class="main">)</span> <span class="entity">ds</span>
+
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">connection_import</span> <span class="entity">thy</span> <span class="entity">cla</span> <span class="entity">deps</span> <span class="main">=</span> 
+  <span class="keyword2"><span class="keyword">let</span></span> <span class="keyword1"><span class="keyword">val</span></span> <span class="entity">cla'</span> <span class="main">=</span> <span class="entity">get_class</span> <span class="main">(</span><span class="entity">get_ctxt</span> <span class="entity">thy</span><span class="main">)</span> <span class="entity">cla</span>
+      <span class="keyword1"><span class="keyword">val</span></span> <span class="main">(</span><span class="entity">typ_a</span><span class="main">,</span> <span class="entity">typ_b</span><span class="main">)</span> <span class="main">=</span> <span class="main">(</span>TFree <span class="main">(</span><span class="inner_quoted">"'a"</span><span class="main">,</span> <span class="main">[</span><span class="entity">cla'</span><span class="main">]</span><span class="main">)</span><span class="main">,</span> <span class="antiquoted"><span class="antiquote">@{</span><span class="operator">typ</span> <span class="quoted"><span class="tfree">'b</span></span><span class="antiquote">}</span></span><span class="main">)</span>
+      <span class="keyword1"><span class="keyword">val</span></span> <span class="entity">abs</span> <span class="main">=</span> <span class="main">(</span><span class="inner_quoted">"Abs"</span><span class="main">,</span> <span class="entity">typ_a</span> --&gt; <span class="entity">typ_b</span><span class="main">,</span> NoSyn<span class="main">)</span>
+      <span class="keyword1"><span class="keyword">val</span></span> <span class="entity">rep</span> <span class="main">=</span> <span class="main">(</span><span class="inner_quoted">"Rep"</span><span class="main">,</span> <span class="entity">typ_b</span> --&gt; <span class="entity">typ_a</span><span class="main">,</span> NoSyn<span class="main">)</span>
+  <span class="keyword2"><span class="keyword">in</span></span> map <span class="main">(</span><span class="keyword1"><span class="keyword">fn</span></span> <span class="entity">loc</span> <span class="main">=&gt;</span> <span class="main">(</span><span class="entity">loc</span><span class="main">,</span> <span class="main">(</span><span class="inner_quoted">""</span><span class="main">,</span>false<span class="main">)</span><span class="main">,</span> <span class="main">[</span><span class="entity">abs</span><span class="main">,</span><span class="entity">rep</span><span class="main">]</span><span class="main">)</span><span class="main">)</span> <span class="main">(</span><span class="entity">get_connection_deps</span> <span class="entity">thy</span> <span class="entity">deps</span><span class="main">)</span> <span class="keyword2"><span class="keyword">end</span></span>
+
+<span class="keyword1"><span class="keyword">fun</span></span> <span class="entity">mk_connection_locale</span> <span class="entity">thy</span> <span class="main">(</span><span class="entity">mcomp</span> <span class="main">{</span><span class="entity">name</span><span class="main">,</span> <span class="entity">deps</span><span class="main">,</span><span class="main">...</span><span class="main">}</span><span class="main">)</span> <span class="main">=</span>
+  <span class="keyword2"><span class="keyword">let</span></span> <span class="keyword1"><span class="keyword">val</span></span> <span class="entity">imports</span> <span class="main">=</span> <span class="entity">locale_import_expr</span> <span class="main">(</span><span class="entity">connection_import</span> <span class="entity">thy</span> <span class="entity">name</span> <span class="entity">deps</span><span class="main">)</span>
+  <span class="keyword2"><span class="keyword">in</span></span> <span class="entity">mk_locale</span> <span class="main">(</span><span class="entity">name</span> ^ <span class="inner_quoted">"Connection"</span><span class="main">)</span> <span class="entity">imports</span> <span class="main">[</span><span class="main">]</span> <span class="main">[</span><span class="main">]</span> <span class="keyword2"><span class="keyword">end</span></span>
+
+<span class="comment1">(*  DEAD CODE - no need to import the locale of ModelBase type class,
+                all we need to do is place a ModelBase sort constraint on the type 'a.
+fun mk_base_connection_locale thy =
+  let val imports = locale_expr thy [@{locale ModelBase}]
+      val abs = ("Abs", SOME @{typ ‹'a ⇒ 'b›}, NoSyn) 
+      val rep = ("Rep", SOME @{typ ‹'b ⇒ 'a›}, NoSyn)
+      val tdef_form = @{prop ‹type_definition Rep Abs (Set.Collect M)›}
+      val tdef_assm = ("tdef", tdef_form)
+  in mk_locale "ConnectionBase" imports [abs,rep] [tdef_assm] end *)</span></pre>
+</body>
+
+</html>

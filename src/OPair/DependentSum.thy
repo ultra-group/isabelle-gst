@@ -7,7 +7,7 @@ context OPair begin
 subsection \<open>Dependent Sum Type\<close>
 
 definition depsum_ty :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> ('a \<Rightarrow> bool)) \<Rightarrow> ('a \<Rightarrow> bool)" 
-  where "depsum_ty \<alpha> \<beta> \<equiv> Pair \<bar> (\<lambda>p. \<tau> p : \<alpha> \<and> \<pi> p : \<beta> (\<tau> p))"
+  where "depsum_ty \<alpha> \<beta> \<equiv> Pair \<triangle> (\<lambda>p. \<tau> p : \<alpha> \<and> \<pi> p : \<beta> (\<tau> p))"
 
 end
 

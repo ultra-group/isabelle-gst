@@ -243,6 +243,11 @@ lemma tex_transfer [transfer_rule] :
   unfolding mtex_def tex_def
   by (transfer_prover)
 
+lemma tuniq_transfer [transfer_rule] :
+  "(((\<simeq>) ===> (\<longleftrightarrow>)) ===> ((\<simeq>) ===> (\<longleftrightarrow>)) ===> (\<longleftrightarrow>)) (mtuniq) (tuniq)"
+  unfolding mtuniq_def tuniq_def
+  by (transfer_prover)
+
 
 subsection \<open>Transfer rules for definite descriptions\<close>
 

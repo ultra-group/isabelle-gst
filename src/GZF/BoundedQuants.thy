@@ -2,7 +2,12 @@ theory BoundedQuants
   imports "../GST_Features"
 begin
 
-context GZF_sig begin
+context GZF begin
+
+lemmas Subset_def = spec[OF spec[OF Subset_ax]]
+   and SetMem_def = spec[OF SetMem_ax]
+   and ReplPred_def = spec[OF spec[OF ReplPred_ax]]
+   and SetOf_def = spec[OF spec[OF SetOf_ax]]
 
 subsection \<open>Soft typing rules\<close>
 
@@ -22,7 +27,7 @@ lemma setofI : "\<lbrakk> x : Set ; \<And>b. b \<in> x \<Longrightarrow> b : P \
   unfolding SetOf_def by (unfold_typs, auto)
 
 lemma setof_mem : "x : SetOf \<alpha> \<Longrightarrow> b \<in> x \<Longrightarrow> b : \<alpha>"
-  unfolding SetOf_def by (drule tyE, auto)
+  unfolding SetOf_def has_ty_def by auto 
 
 lemma setmemI : "x : Set \<Longrightarrow> a \<in> x \<Longrightarrow> a : SetMem"
   unfolding SetMem_def by (unfold_typs, auto)
@@ -85,7 +90,7 @@ syntax
 translations
   "\<Pi> b\<in>x. B" \<rightleftharpoons> "CONST depfun_ty (CONST MemOf x) (\<lambda>b. B)"
 
-context GZF_sig begin
+context GZF begin
 
 (*Lemmas taken from ZF/ZF_Base*)
 lemma ballI [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> P x) \<Longrightarrow> \<forall>x\<in>A. P x"

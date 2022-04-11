@@ -14,15 +14,25 @@ lemma mreplpred_replpred :
   assumes x : "<set,x'> : mSet" and P : "P : mReplPred <set,x'>"
   shows "(\<lambda>a b. P a b \<and> b : mSetMem) : ReplPred x'"
   unfolding ReplPred_def
-proof (rule tyI, auto, rule mset_set[OF x])
+proof (rule tyI, auto)
   fix a assume "a \<in> x'"
   hence "a m <set,x'>" using mmemI[OF x] by auto
-  hence uniq:"\<exists>\<^sub>\<le>\<^sub>1 b : mSetMem. P a b" 
-     using P unfolding mreplpred_def has_ty_def by auto
+  hence uniq:"m\<exists>\<^sub>\<le>\<^sub>1 b : mSetMem. P a b" 
+     using P mmem_m
+     unfolding mReplPred_def has_ty_def mall_def tall_def by auto
   thus "\<exists>\<^sub>\<le>\<^sub>1 b : SetMem. P a b \<and> b : mSetMem" 
-   unfolding tuniq_def Uniq_def using msmem_smem by auto
+   unfolding mtuniq_def muniq_def tuniq_def Uniq_def 
+   using msmem_smem msmem_m by auto
 qed
 
+lemma mreplpred_cong :  
+  "\<And>x. x : M \<Longrightarrow> (\<And>fun1 fun2.
+      (\<And>x. x : M \<Longrightarrow> (\<And>xa. xa : M \<Longrightarrow> fun1 x xa = fun2 x xa))
+        \<Longrightarrow> mReplPred x fun1 = mReplPred x fun2)"
+  using mset_m[OF mmem_mset]
+  unfolding mReplPred_def mall_def tall_def 
+            mtuniq_def tuniq_def muniq_def Uniq_def by blast
+     
 lemma mrank_memfun : 
   assumes x : "x : SetOf M"
   shows "mrank : x \<leadsto> Ord"
@@ -116,16 +126,16 @@ proof (rule pair_eqI[OF refl],
        rule replace_cong[OF mset_snd_set[OF x] _ mset_snd_set[OF x] _ refl])
   obtain x' where x':"x = <set, x'>" "x' : Set"
     using msetE[OF x] .
-  show "(\<lambda>a b. P a b \<and> (\<exists> x:mSet. b m x)) : ReplPred (\<pi> x)"
-       "(\<lambda>a b. Q a b \<and> (\<exists> x:mSet. b m x)) : ReplPred (\<pi> x)"
+  show "(\<lambda>a b. P a b \<and> b : mSetMem) : ReplPred (\<pi> x)"
+       "(\<lambda>a b. Q a b \<and> b : mSetMem) : ReplPred (\<pi> x)"
        using x mreplpred_replpred P Q 
        unfolding x' mset_snd_eq'[OF x'(2)] msetmem_iff
        by auto
   fix a b assume "a \<in> \<pi> x"
   hence "a m x" using mmemI x x' mset_snd_eq by auto
   hence "a : M" using mmem_m by auto
-  thus "(P a b \<and> (\<exists> x:mSet. b m x)) \<longleftrightarrow> (Q a b \<and> (\<exists> x:mSet. b m x))"
-    using iff mmem_m by auto
+  thus "(P a b \<and> b : mSetMem) \<longleftrightarrow> (Q a b \<and> b : mSetMem)"
+    using iff mmem_m msetmem_iff by auto
 qed
   
 lemma mrepl_cong :
@@ -134,8 +144,8 @@ lemma mrepl_cong :
 proof -
   have pq:"P : mReplPred x \<longleftrightarrow> Q : mReplPred x"
     using iff[OF mmem_m msmem_m]
-    unfolding mreplpred_def has_ty_def tuniq_def Uniq_def
-    by blast
+    unfolding mReplPred_def has_ty_def mtuniq_def muniq_def tuniq_def Uniq_def
+              mall_def by blast
   show ?thesis
   proof (cases \<open>x : mSet \<and> P : mReplPred x\<close>)
     case h:True

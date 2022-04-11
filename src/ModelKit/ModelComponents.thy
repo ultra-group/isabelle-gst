@@ -7,16 +7,7 @@ context ModelBase begin
 ML_file \<open>Tools/model_components.ML\<close>
 ML_file \<open>Tools/translate_axioms.ML\<close>
 end
-(* ML \<open>val ord_model = mcomp 
- { name = "OrdModel", 
-   deps = [], 
-   variant = SOME (vari 
-    { tag_name = "ord",
-      vcases = 
-        (@{term \<open>{0}\<close>}, 
-         @{term "(\<lambda>j x. {j}) :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"}, 
-         @{term "(\<lambda>\<mu> f. {\<mu>}) :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"}),
-      alpha_typ = @{term \<open>Ord\<close>}})} \<close>
+(* 
 
 ML \<open>val ordrec_model = mcomp 
  { name = "OrdRecModel", 

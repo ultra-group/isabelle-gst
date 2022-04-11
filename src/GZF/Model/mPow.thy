@@ -57,6 +57,19 @@ qed
 
 lemmas mpow_mset = funE[OF mpow_typ]
 
+lemma msubsetI :
+  assumes "\<And>b. b m x \<Longrightarrow> b m y"
+  shows "mSubset x y"
+  using assms
+  unfolding mSubset_def by auto
+
+lemma msubsetD :
+  assumes xy : "mSubset x y"
+      and b  : "b m x"  
+    shows "b m y"
+ using assms mmem_m
+ unfolding mSubset_def mall_def by auto
+
 lemma mpowI :
   assumes x : "x : mSet" and y : "y : mSet" 
       and xy:"mSubset x y"
@@ -109,7 +122,7 @@ proof (rule msetE[OF x], rule msetE[OF y])
     using powD[OF y'(2)] by auto
   thus "mSubset x y"
     unfolding 
-      msubset_def 
+      mSubset_def 
       mmem_iff_eq[OF x x'(1)] 
       mmem_iff_eq[OF y y'(1)] 
     by auto
@@ -122,7 +135,7 @@ lemma mpow_iff :
 
 theorem msubset_eq :
   "mSubset x y = (m\<forall>a. a m x \<longrightarrow> a m y)"
-  unfolding mall_def tall_def msubset_def
+  unfolding mall_def tall_def mSubset_def
   using mmem_m by auto
 
 theorem mpow_ax : 

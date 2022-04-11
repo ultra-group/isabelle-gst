@@ -13,6 +13,10 @@ fun quant_trans @{term \<open>All :: ('a \<Rightarrow> bool) \<Rightarrow> bool\
       = @{term mtall}
   | quant_trans @{term "tex :: ('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"}
       = @{term mtex}
+  | quant_trans @{term "tex1 :: ('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"}
+      = @{term mtex1}
+  | quant_trans @{term "tuniq :: ('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"}
+      = @{term mtuniq}
   | quant_trans c = c 
 
 fun translate_term ctxt msig =

@@ -11,7 +11,7 @@ context Tagging begin
 subsection \<open>Soft typing rules\<close>
 
 definition Tag :: \<open>'a \<Rightarrow> bool\<close>
-  where "Tag \<equiv> Ord \<bar> (\<lambda>i. i < \<omega>)" 
+  where "Tag \<equiv> Ord \<triangle> (\<lambda>i. i < \<omega>)" 
 
 lemma tagI :
   assumes "i : Ord" "i < \<omega>"
@@ -45,7 +45,7 @@ definition TagMap :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infix \<open>\<oplu
   where "t \<oplus> x \<equiv> { <t, b> | b \<in> x }"
 
 lemma tmap_typ : 
-  "TagMap : (\<alpha> \<bar> PairMem) \<rightarrow> SetOf \<beta> \<rightarrow> SetOf (\<alpha> * \<beta>)"
+  "TagMap : (\<alpha> \<triangle> PairMem) \<rightarrow> SetOf \<beta> \<rightarrow> SetOf (\<alpha> * \<beta>)"
   unfolding TagMap_def
 proof (rule funI, drule intE, rule funI, 
        rule repfun_setof[OF setof_set mem_funI], auto)
@@ -61,7 +61,7 @@ lemmas tmap_setof = funE[OF funE[OF tmap_typ]]
 lemma tmap_typ_setof_pair : "TagMap : PairMem \<rightarrow> Set \<rightarrow> SetOf Pair"
 proof (rule funI[OF funI])
   fix t x assume t:"t : PairMem" and x:"x : Set" 
-  hence "t : (PairMem \<bar> PairMem)" and "x : SetOf SetMem" 
+  hence "t : (PairMem \<triangle> PairMem)" and "x : SetOf SetMem" 
     using intI[OF t] setofI[OF x] setmemI[OF x] by auto
   hence "t \<oplus> x : SetOf (PairMem * SetMem)" using tmap_setof by auto
   hence t:"t \<oplus> x : Set" and p:"\<And>p. p \<in> t \<oplus> x \<Longrightarrow> p : PairMem * SetMem" 

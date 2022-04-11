@@ -8,8 +8,8 @@ syntax
   "_depfun_ord" :: "[pttrn, 'a, bool] => bool" (\<open>(3\<Pi>_<_./ _)\<close> 10)
   "_depsum_ord" :: "[pttrn, 'a, bool] => bool" (\<open>(3\<Sigma>_<_./ _)\<close> 10)
 translations
-  "\<Pi> i<j. B" \<rightleftharpoons> "\<Pi> i:(CONST Ord \<bar> (CONST gt) j). B"
-  "\<Sigma> i<j. B" \<rightleftharpoons> "\<Sigma> i:(CONST Ord \<bar> (CONST gt) j). B"
+  "\<Pi> i<j. B" \<rightleftharpoons> "\<Pi> i:(CONST Ord \<triangle> (CONST gt) j). B"
+  "\<Sigma> i<j. B" \<rightleftharpoons> "\<Sigma> i:(CONST Ord \<triangle> (CONST gt) j). B"
 
 context Ordinal begin
 

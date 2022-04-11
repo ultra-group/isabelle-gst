@@ -5,7 +5,7 @@ begin
 context Function begin
 
 thm mkfun_typ dom_typ
-thm "fun" fun_prop fun_ext fun_dom
+thm mkfun_ax fun_prop fun_ext fun_dom
 
 lemmas mkfun_fun = funE[OF depfunE[OF mkfun_typ]]
 lemmas dom_set = funE[OF dom_typ]
@@ -35,7 +35,7 @@ lemma fun_eqI :
 lemma mkfun_iff : 
   assumes x:"x : Set" and P:"P : FunPred x"
   shows "app (mkfun x P) b c \<longleftrightarrow> b \<in> x \<and> P b c \<and> b : FunMem \<and> c : FunMem"
-  using "fun" x P by auto
+  using mkfun_ax x P by auto
 
 
 
@@ -401,10 +401,10 @@ lemma set_restrict_default :
 section \<open>Partial Functions\<close>
 
 definition typish_partial_fun :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" (infixr \<open>\<Zpfun>''\<close> 70)
-  where "x \<Zpfun>' y \<equiv> Function \<bar> (\<lambda>f. (\<forall>a b. a \<in> x \<longrightarrow> app f a b \<longrightarrow> b \<in> y))" 
+  where "x \<Zpfun>' y \<equiv> Function \<triangle> (\<lambda>f. (\<forall>a b. a \<in> x \<longrightarrow> app f a b \<longrightarrow> b \<in> y))" 
 
 definition partial_fun :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" (infixr \<open>\<Zpfun>\<close> 70)
-  where "x \<Zpfun> y \<equiv> (x \<Zpfun>' y) \<bar> (\<lambda>f. dom f \<subseteq> x)"
+  where "x \<Zpfun> y \<equiv> (x \<Zpfun>' y) \<triangle> (\<lambda>f. dom f \<subseteq> x)"
 
 lemma pfun_fun :
   assumes f:"f : x \<Zpfun>' y"
@@ -452,7 +452,7 @@ section \<open>Total Functions\<close>
 
 (*Consider changing soft-type arrow for ('a \<Rightarrow> 'b) to \<Rightarrow> or \<Rrightarrow>, then use \<rightarrow> for 'a-functions *)
 definition typish_total_fun :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" (infixr \<open>\<leadsto>''\<close> 70)
-  where "x \<leadsto>' y \<equiv> (x \<Zpfun>' y) \<bar> (\<lambda>f. x \<subseteq> dom f)"
+  where "x \<leadsto>' y \<equiv> (x \<Zpfun>' y) \<triangle> (\<lambda>f. x \<subseteq> dom f)"
 
 lemma typish_tfunI :
   assumes f:"f : (x \<Zpfun>' y)"
@@ -462,7 +462,7 @@ lemma typish_tfunI :
   by (rule intI[OF f], rule tyI, use bc in auto)
 
 definition total_fun :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" (infixr \<open>\<midarrow>t\<rightarrow>\<close> 70)
-  where "x \<midarrow>t\<rightarrow> y \<equiv> (x \<leadsto>' y) \<bar> (\<lambda>f. dom f \<subseteq> x)"
+  where "x \<midarrow>t\<rightarrow> y \<equiv> (x \<leadsto>' y) \<triangle> (\<lambda>f. dom f \<subseteq> x)"
 
 lemma tfunI :
   assumes f : "f : (x \<leadsto>' y)"
@@ -499,12 +499,12 @@ lemma lam_iff :
   assumes x:"x : Set"  
     shows "app (\<lambda>b\<in>x. F b) b c \<longleftrightarrow> b \<in> x \<and> b : FunMem \<and> c = F b \<and> c : FunMem"
   unfolding lam_def 
-  using "fun" x any_funpredI by auto
+  using mkfun_ax x any_funpredI by auto
 
 lemma lam_iff' :
   assumes x:"x : Set"
   shows "app (\<lambda>b\<in>x. F b) b (F b) \<longleftrightarrow> b \<in> x \<and> b : FunMem \<and> F b : FunMem"
-  unfolding lam_def using "fun" x any_funpredI by auto
+  unfolding lam_def using mkfun_ax x any_funpredI by auto
 
 lemma lam_app :
   assumes x:"x : Set" and F:"F : x \<leadsto> FunMem" 

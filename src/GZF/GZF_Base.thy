@@ -10,8 +10,6 @@ context GZF begin
 
 thm Union_typ Pow_typ Inf_typ Repl_typ
 
-
-
 lemma setof_subset : 
   assumes "x : Set" "y : SetOf \<alpha>" "x \<subseteq> y"
     shows "x : SetOf \<alpha>"
@@ -207,7 +205,7 @@ lemma replace_cong :
       unfold replace_iff[OF assms(1,2)] replace_iff[OF assms(3,4)], blast)
 
 definition ReplFunPred :: "['a, 'a \<Rightarrow> bool] \<Rightarrow> ((['a,'a] \<Rightarrow> bool) \<Rightarrow> bool)"
-  where [typdef] : "ReplFunPred x \<beta> \<equiv> ReplPred x \<bar> BinPred (MemOf x) \<beta>"
+  where [typdef] : "ReplFunPred x \<beta> \<equiv> ReplPred x \<triangle> BinPred (MemOf x) \<beta>"
 
 lemma funpred_replpred: "ReplFunPred x \<beta> << ReplPred x"  
   unfolding ReplFunPred_def 

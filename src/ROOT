@@ -12,6 +12,7 @@ session GST = "HOL-Eisbach" +
     ModelKit
     OPair
     Ordinal
+    "Ordinal/Model"
   theories 
     "GZF/Model/GZF_Model"
-  
+    "Ordinal/Model/Ordinal_Model"

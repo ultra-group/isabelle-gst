@@ -48,7 +48,9 @@ lemmas mtagE = depsumE[OF m_depsum]
 lemmas mtagD = depsumD[OF m_depsum]
 lemmas mtagD_pair = depsumD_pair[OF m_depsum]
 lemmas m_pair = mtagD(1)
-    
+lemmas mpair_pair = mtagD_pair(1)
+lemmas mpair_inject = pair_inject[OF mpair_pair mpair_pair]
+
 lemma mpair_snd_eq : 
   "<i,x'> : M \<Longrightarrow> \<pi> <i,x'> = x'"
   using snd_eq[OF m_pair] by auto
@@ -165,12 +167,12 @@ subsection \<open>Syntax for type-restricted model quantifiers\<close>
 (*Equivalent to soft-type restriction on quantifiers.
   Only purpose of this notation is for less keystrokes.*)
 syntax
-  "_mtall"  :: "[pttrn, 'a \<Rightarrow> bool, bool] \<Rightarrow> bool"  ("(3m\<forall>_:_./ _)" 10)
-  "_mtex"   :: "[pttrn, 'a \<Rightarrow> bool, bool] \<Rightarrow> bool"  ("(3m\<exists>_:_./ _)" 10)
-  "_mtex1"  :: "[pttrn, 'a \<Rightarrow> bool, bool] \<Rightarrow> bool"  ("(3m\<exists>!_:_./ _)" 10)
-  "_mtuniq" :: "[pttrn, 'a \<Rightarrow> bool, bool] \<Rightarrow> bool"  ("(3m\<exists>\<^sub>\<le>\<^sub>1_:_./ _)" 10)
+  "_mtall"  :: "[pttrn, 'a \<Rightarrow> bool, bool] \<Rightarrow> bool"  ("(3m\<forall>_ : _./ _)" 10)
+  "_mtex"   :: "[pttrn, 'a \<Rightarrow> bool, bool] \<Rightarrow> bool"  ("(3m\<exists>_ : _./ _)" 10)
+  "_mtex1"  :: "[pttrn, 'a \<Rightarrow> bool, bool] \<Rightarrow> bool"  ("(3m\<exists>!_ : _./ _)" 10)
+  "_mtuniq" :: "[pttrn, 'a \<Rightarrow> bool, bool] \<Rightarrow> bool"  ("(3m\<exists>\<^sub>\<le>\<^sub>1_ : _./ _)" 10)
   "_mtdefdes" :: "[pttrn, 'a \<Rightarrow> bool, 'a \<Rightarrow> bool, 'a] \<Rightarrow> 'a"  
-    ("(4m\<iota>_:_./ _ else _)" 10)
+    ("(4m\<iota> _ : _./ _ else _)" 10)
 translations
   "m\<forall>x : P. Q"  \<rightleftharpoons> "CONST mtall P (\<lambda>x. Q)"
   "m\<exists>x : P. Q"  \<rightleftharpoons> "CONST mtex P (\<lambda>x. Q)"

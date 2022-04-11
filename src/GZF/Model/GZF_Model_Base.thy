@@ -23,16 +23,36 @@ local_setup \<open>snd o (mk_mcomp_class set_model)\<close>
 context GZF_Model begin
 
 definition mSet :: \<open>'a \<Rightarrow> bool\<close>
-  where "mSet \<equiv> M \<bar> (\<^enum> set)"
+  where "mSet \<equiv> M \<triangle> (\<^enum> set)"
 
 definition mMem :: \<open>'a \<Rightarrow> 'a \<Rightarrow> bool\<close> (infix \<open>m\<close> 50) 
 where "x m y \<equiv> y : mSet \<and> x \<in> snd y"
 
+definition mSetMem :: \<open>'a \<Rightarrow> bool\<close>
+  where "mSetMem b \<equiv> m\<exists>x : mSet. b m x"
+
+definition mSubset :: \<open>['a, 'a] \<Rightarrow> bool\<close>
+  where "mSubset x y \<equiv> m\<forall>a. a m x \<longrightarrow> a m y"
+
+definition mSetOf :: \<open>['a \<Rightarrow> bool, 'a] \<Rightarrow> bool\<close>
+  where "mSetOf P x \<equiv> x : mSet \<and> (m\<forall>b. b m x \<longrightarrow> b : P)"
+
+definition mReplPred :: \<open>['a, ['a,'a] \<Rightarrow> bool] \<Rightarrow> bool\<close>
+  where "mReplPred x P \<equiv> m\<forall>a. a m x \<longrightarrow> (m\<exists>\<^sub>\<le>\<^sub>1 b : mSetMem. P a b)" 
+
 definition mUnion' :: \<open>'a \<Rightarrow> 'a\<close> 
   where "mUnion' x \<equiv> <set, \<Union> y \<in> snd x. snd y>"
 
+definition mUnion :: \<open>'a \<Rightarrow> 'a\<close> (\<open>m\<Union>\<close>)
+  where "m\<Union> x \<equiv> if x : mSetOf mSet then mUnion' x
+                                    else GZF_Model_mdefault"
+
 definition mPow' :: \<open>'a \<Rightarrow> 'a\<close> 
   where "mPow' x \<equiv> <set, set \<oplus> \<P> (snd x)>"
+
+definition mPow :: \<open>'a \<Rightarrow> 'a\<close> (\<open>m\<P>\<close>)
+  where "m\<P> x \<equiv> if x : mSet then mPow' x 
+                            else GZF_Model_mdefault"
 
 definition mEmp :: \<open>'a\<close> (\<open>m\<emptyset>\<close>)
   where "mEmp = <set, \<emptyset>>" 
@@ -50,45 +70,12 @@ definition ord_to_mvnord :: \<open>'a \<Rightarrow> 'a\<close> (\<open>\<Theta>\
 definition mInf :: \<open>'a\<close>
   where \<open>mInf \<equiv> \<Theta> \<omega>\<close>
 
-(*Probably need to make sure that b is a SetMem*)
 definition mRepl' :: \<open>['a, ['a,'a] \<Rightarrow> bool] \<Rightarrow> 'a\<close> 
-  where "mRepl' x P \<equiv> <set, { b | \<exists> a \<in> snd x. P a b \<and> (\<exists>y : mSet. b m y) }>" 
-
-(*TODO: include simple definitions from *_sig in translated list of axioms for user to prove *)
-interpretation m : GZF_sig GZF_Model_mdefault mSet mMem mUnion' mPow' mEmp mSucc' mInf mRepl' .
-
-abbreviation "mSetOf \<equiv> m.SetOf"
-lemmas msetofI = m.setofI
-   and msetof_mset = m.setof_set
-   and msetof_mmem = m.setof_mem
-   and msetof_iff = m.setof_iff
-
-abbreviation "mSetMem \<equiv> m.SetMem"
-lemmas msetmemI = m.setmemI
-   and msetmem_iff = m.setmem_iff
-
-abbreviation "mSubset \<equiv> m.Subset"
-lemmas msubsetI = m.subsetI
-   and msubsetD = m.subsetD
-   and msubset_def = m.Subset_def
-
-abbreviation "mReplPred \<equiv> m.ReplPred"
-lemmas mreplpred_def = m.ReplPred_def
-
-definition mUnion :: \<open>'a \<Rightarrow> 'a\<close> (\<open>m\<Union>\<close>)
-  where "m\<Union> x \<equiv> if x : mSetOf mSet then mUnion' x
-                                    else GZF_Model_mdefault"
-
-definition mPow :: \<open>'a \<Rightarrow> 'a\<close> (\<open>m\<P>\<close>)
-  where "m\<P> x \<equiv> if x : mSet then mPow' x 
-                            else GZF_Model_mdefault"
-
-
+  where "mRepl' x P \<equiv> <set, { b | \<exists> a \<in> snd x. P a b \<and> b : mSetMem }>" 
 
 definition mRepl :: \<open>['a, ['a,'a] \<Rightarrow> bool] \<Rightarrow> 'a\<close> (\<open>m\<R>\<close>)
   where "m\<R> x P \<equiv> if x : mSet \<and> P : mReplPred x 
                     then mRepl' x P else GZF_Model_mdefault"
-
 
 theorem variants_set :
   shows "Variants set 0 \<emptyset> = \<emptyset>"

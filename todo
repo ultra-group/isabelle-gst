@@ -7,10 +7,19 @@ High priority:
  ☐ Feature and Model for Exception
  ☐ Examples from paper:
    ☐ ZF, ZFP, ZFO, ZFN, ZF+
+   ☐ everything is a set
+   ☐ ---- interesting choices ----
+   ☐ everything is distinct 
  ☐ HTML output
    ☐ ROOT file for session
    ☐ makefile to build and generate HTML on new git pushes
 
+ ☐ How to prepare for AFP
+
 Medium priority: 
  ☐ Model for Pair, Nat, Function
 
+
+
+Future work:
+ ☐ Having everything built on top of ordinals, or functions

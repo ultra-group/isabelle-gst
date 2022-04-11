@@ -158,22 +158,22 @@ lemma bpredI [typ_intro]: "(\<And>x y. x : \<alpha> \<Longrightarrow> P x y \<Lo
   unfolding BinPred_def by (unfold_typs, auto)
 
 subsection \<open>Intersection types\<close>
-definition inter_ty :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool)" (infix "\<bar>" 45)
-  where [typdef] : "P \<bar> Q \<equiv> \<lambda>x. P x \<and> Q x"
+definition inter_ty :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool)" (infix "\<triangle>" 45)
+  where [typdef] : "P \<triangle> Q \<equiv> \<lambda>x. P x \<and> Q x"
 
 lemma intE : 
-  assumes "x : (P \<bar> Q)" 
+  assumes "x : (P \<triangle> Q)" 
     shows "x : P \<and> x : Q" 
   using assms unfolding inter_ty_def by unfold_typs
 
-lemma intE1 : "x : (P \<bar> Q) \<Longrightarrow> x : P" 
+lemma intE1 : "x : (P \<triangle> Q) \<Longrightarrow> x : P" 
   unfolding inter_ty_def by unfold_typs
 
-lemma intE2 : "x : (P \<bar> Q) \<Longrightarrow> x : Q" 
+lemma intE2 : "x : (P \<triangle> Q) \<Longrightarrow> x : Q" 
   unfolding inter_ty_def by unfold_typs
 
 lemma intI [typ_intro] : 
-  "\<lbrakk> x : P ; x : Q \<rbrakk> \<Longrightarrow> x : (P \<bar> Q)" 
+  "\<lbrakk> x : P ; x : Q \<rbrakk> \<Longrightarrow> x : (P \<triangle> Q)" 
   unfolding inter_ty_def by unfold_typs
 
 subsection \<open>Subtyping\<close>
@@ -188,8 +188,8 @@ lemma subtyp_trans :
   shows "P << R"
   by (rule subtypI, rule subtypE[OF \<open>Q << R\<close>], rule subtypE[OF \<open>P << Q\<close>], assumption)
 
-lemma int_sub1 : "(P \<bar> Q) << P" by (rule subtypI, erule intE1)
-lemma int_sub2 : "(P \<bar> Q) << Q" by (rule subtypI, erule intE2)
+lemma int_sub1 : "(P \<triangle> Q) << P" by (rule subtypI, erule intE1)
+lemma int_sub2 : "(P \<triangle> Q) << Q" by (rule subtypI, erule intE2)
 
 lemma subtyp_fun_dom : "R << P \<Longrightarrow> f : P \<rightarrow> Q \<Longrightarrow> f : R \<rightarrow> Q"
 proof (rule funI)

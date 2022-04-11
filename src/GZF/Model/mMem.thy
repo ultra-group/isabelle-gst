@@ -76,7 +76,48 @@ proof (rule msetE[OF mmem_mset[OF b]], rule mE[OF mset_m[OF mmem_mset[OF b]]])
   hence "<set,x'> \<in> Tier (succ i)" using tier_succI1 by auto
   thus "b : M" using mI[OF _ exsetD1[OF tier_set mmem_tier]] b x by auto
 qed
-  
+ 
+lemma msetofI :
+  assumes "x : mSet" "\<And>b. b m x \<Longrightarrow> b : P"
+  shows "x : mSetOf P"
+  using assms
+  unfolding mSetOf_def has_ty_def 
+  by auto
+
+lemma msetof_mset :
+  assumes "x : mSetOf P"
+  shows "x : mSet"
+  using assms 
+  unfolding mSetOf_def has_ty_def by auto
+
+lemma msetof_mmem :
+  assumes "x : mSetOf P" "b m x"
+  shows "b : P"
+  using assms mmem_m 
+  unfolding mSetOf_def mall_def tall_def has_ty_def by auto
+
+lemma msetof_iff :
+  "x : mSetOf P \<longleftrightarrow> x : mSet \<and> (\<forall>b. b m x \<longrightarrow> b : P)"
+  using mmem_m
+  unfolding mSetOf_def mall_def tall_def has_ty_def by auto
+
+lemma msetof_cong : "\<And>fun1 fun2. (\<And>x. x : M \<Longrightarrow> fun1 x = fun2 x) 
+    \<Longrightarrow> (\<And>x. x : M \<Longrightarrow> mSetOf fun1 x = mSetOf fun2 x)"
+ unfolding mSetOf_def mall_def tall_def has_ty_def 
+          by auto
+
+
+lemma msetmemI :
+  assumes "b m x"
+  shows "b : mSetMem" 
+  using assms mset_m mmem_mset
+  unfolding mSetMem_def has_ty_def mtex_def mex_def tex_def by auto
+
+lemma msetmem_iff : 
+  "b : mSetMem \<longleftrightarrow> (\<exists>x. b m x)"
+  using msetmemI 
+  unfolding mSetMem_def has_ty_def mtex_def mex_def tex_def by auto
+
 lemma mset_pair_setof : 
   assumes x : "<set, x'> : mSetOf P" 
   shows "x' : SetOf P"
@@ -131,10 +172,10 @@ theorem mext_ax :
 lemma msmem_smem : 
   assumes b : "b : mSetMem" 
   shows "b : SetMem"
-proof -
-  from b obtain x where 
+proof - 
+  from b mmem_mset obtain x where 
     x : "x : mSet" and b : "b m x"
-    unfolding msetmem_iff tex_def by auto
+    unfolding msetmem_iff[of b] tex_def by auto
   then obtain x' where x' : "x = <set, x'>" "x' : Set"
     using msetE by auto
   hence bx:"b \<in> x'" using mmemD b by auto
@@ -145,7 +186,7 @@ lemma msmem_m :
   assumes b:"b : mSetMem"
   shows "b : M"
 proof -
-  from b obtain x where 
+  from b mmem_mset obtain x where 
     x:"x : mSet" and bx:"b m x" 
     unfolding msetmem_iff tex_def by auto
   thus "b : M"
@@ -158,7 +199,7 @@ lemma msmem_not_excluded :
 proof -
   from b obtain x where 
     x:"x : mSet" and bx:"b m x" 
-    unfolding msetmem_iff tex_def by auto
+    using msetmem_iff mmem_mset unfolding tex_def by auto
   obtain x' where "x = <set,x'>" "b \<in> x'"
     by (rule msetE[OF x], metis mmemD bx)
   then obtain j where "j : Ord" and "<set,x'> \<in> Tier (succ j)"

@@ -287,8 +287,9 @@ lemma limit_nonzero :
 lemma limit_lt_succ :
   assumes "\<mu> : Limit" "\<beta> : Ord" "\<beta> < \<mu>"
     shows "succ \<beta> < \<mu>"
-  using assms unfolding Limit_def
-  by (unfold_typs)
+  using assms unfolding Limit_def by unfold_typs
+  
+
 
 lemma limit_succE : 
   assumes i:"i : Ord" and succ_i:"succ i : Limit"
@@ -299,7 +300,7 @@ proof (rule ccontr)
   thus "False" using limit_lt_succ[OF succ_i i leq_refl[OF i]] by auto
 qed
 
-definition nonLimit where [typdef] : "nonLimit \<equiv> Ord \<bar> (\<lambda>i. \<not> i : Limit)"
+definition nonLimit where [typdef] : "nonLimit \<equiv> Ord \<triangle> (\<lambda>i. \<not> i : Limit)"
 
 lemma nonLimitI : 
   assumes "i : Ord" "\<not> i : Limit"

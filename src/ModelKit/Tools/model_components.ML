@@ -105,18 +105,16 @@ fun mk_fun dom ran c =
     SOME (_,y) => y
   | NONE   => c  
 
-fun msig_compose ((m1,s1), (m2,s2)) =
-  (Morphism.compose m1 m2, s1 @ s2)
+val compose_morphs = List.foldl (uncurry Morphism.compose) Morphism.identity
 
-fun mk_msig msigs str cla ids ctxt = 
+fun mk_msig (msigs : model_sig list) str cla ids ctxt = 
   let 
     val feat_name = get_class ctxt cla
     val feat_params = get_locale_param_names (get_thy ctxt) feat_name
+    val new_params = subtract (op =) (List.concat (map #support msigs)) (feat_params)
     val bnds = map Binding.name ids
-    val imports = List.foldl msig_compose (Morphism.identity, []) 
-        (map (fn msig : model_sig => (#morph msig, #support msig)) msigs)
-    val morph = Morphism.binding_morphism str (mk_fun feat_params bnds)
-    val (morph', supp) = msig_compose ((morph, feat_params), imports)
+    val morph' = Morphism.binding_morphism str (mk_fun new_params bnds)
+    val morph = compose_morphs (morph' :: map #morph msigs)
   in 
-    {feature = feat_name, morph = morph', support = supp} : model_sig
+    {feature = feat_name, morph = morph, support = new_params} : model_sig
   end;

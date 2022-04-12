@@ -136,7 +136,7 @@ definition Tier :: "'a \<Rightarrow> 'a" where
 lemma tier_cases : 
   shows "Tier 0 = Tier_zero" 
     and "j : Ord \<Longrightarrow> Tier (succ j) = Tier_succ (succ j) (Tier j)"
-    and "\<mu> : Limit \<Longrightarrow> Tier \<mu> = Tier_lim \<mu> (\<lambda>j. if j < \<mu> then Tier j else OrdRec_default)"
+    and "\<mu> : Limit \<Longrightarrow> Tier \<mu> = Tier_lim \<mu> (\<lambda>j. if j : Ord \<and> j < \<mu> then Tier j else OrdRec_default)"
   unfolding Tier_def 
   by (simp add: ordrec_0, use ordrec_succ ordrec_lim in auto)
 
@@ -217,7 +217,7 @@ qed       *)
 
 lemma variants_limit_setseq' : 
   assumes \<mu> : "\<mu> : Limit"
-  defines "t \<equiv> (\<lambda>j. if j < \<mu> then Tier j else OrdRec_default)" 
+  defines "t \<equiv> (\<lambda>j. if j : Ord \<and> j < \<mu> then Tier j else OrdRec_default)" 
   shows "(\<lambda>i. Variants i \<mu> (\<lambda>j<\<mu>. t j \<ominus> i)) : (\<Pi> i : Tag. Set)"
 proof (rule depfunI)
   fix i assume i:"i : Tag"
@@ -233,7 +233,7 @@ lemma tier_lim_set_ih :
     shows "Tier \<mu> : Set"
   unfolding tier_cases(3)[OF \<mu>]
 proof (rule un_set[OF union_set])
-  let ?L = "\<lambda>j. if j < \<mu> then Tier j else OrdRec_default"
+  let ?L = "\<lambda>j. if j : Ord \<and> j < \<mu> then Tier j else OrdRec_default"
   show "{ ?L j | j<\<mu> } : SetOf Set"
   by (rule repfun_ord_setof[OF limit_ord[OF \<mu>] mem_funI], 
       drule predsetD[OF limit_ord[OF \<mu>]], use t\<mu> in auto)
@@ -264,13 +264,13 @@ lemmas lim_predset_set = predset_set[OF limit_ord]
 
 lemma tier_restrict_replfun : 
   assumes \<mu> : "\<mu> : Limit"
-  shows "(\<lambda>j. if j < \<mu> then Tier j else OrdRec_default) : (predSet \<mu>) \<leadsto> Set"
+  shows "(\<lambda>j. if j : Ord \<and> j < \<mu> then Tier j else OrdRec_default) : (predSet \<mu>) \<leadsto> Set"
   by (rule mem_funI, frule predsetD[OF limit_ord[OF \<mu>]],
       use mem_funE[OF tier_replfun[OF \<mu>]] in auto)   
 
 lemma lam_tier_restrict_eq : 
   assumes \<mu> : "\<mu> : Limit"
-  shows "(\<lambda>j<\<mu>. (\<lambda>j. if j < \<mu> then Tier j else OrdRec_default) j \<ominus> i) = (\<lambda>j<\<mu>. Tier j \<ominus> i)"
+  shows "(\<lambda>j<\<mu>. (\<lambda>j. if j : Ord \<and> j < \<mu> then Tier j else OrdRec_default) j \<ominus> i) = (\<lambda>j<\<mu>. Tier j \<ominus> i)"
   by (rule lam_cong[OF lim_predset_set[OF \<mu>]], 
       drule predsetD[OF limit_ord[OF \<mu>]], auto)
 
@@ -334,7 +334,7 @@ lemma ord_ex_iff :
   
 lemma variants_limit_setseq :
   assumes \<mu> : "\<mu> : Limit"
-  defines "t \<equiv> (\<lambda>j. if j < \<mu> then Tier j else OrdRec_default)" 
+  defines "t \<equiv> (\<lambda>j. if j : Ord \<and> j < \<mu> then Tier j else OrdRec_default)" 
   shows "(\<lambda>i. Variants i \<mu> (\<lambda>j<\<mu>. t j \<ominus> i)) : (\<Pi> i : Tag. Set)"
   unfolding t_def
   using variants_limit_setseq'[OF \<mu> ] .

@@ -2,30 +2,28 @@ theory OrdRec
   imports "../GZF/GZF_Base" Ordinal "../Functions/Functions"
 begin
 
-ML \<open>val ordrec_sig =
-   [("predSet", @{typ "'a \<Rightarrow> 'a"}, nsyn), ("supOrd", @{typ "'a \<Rightarrow> 'a"}, nsyn), 
-    ("OrdRec", @{typ "[['a,'a \<Rightarrow> 'a] \<Rightarrow> 'a, ['a,'a] \<Rightarrow> 'a, 'a, 'a] \<Rightarrow> 'a"}, nsyn)]\<close>
-local_setup \<open>snd o mk_sig_class "OrdRec" ["GZF", "Ordinal"] ordrec_sig []\<close>
+class OrdRec = GZF + Ordinal + 
+  fixes 
+    predSet :: \<open>'a \<Rightarrow> 'a\<close> and 
+    supOrd :: \<open>'a \<Rightarrow> 'a\<close> and
+    OrdRec :: \<open>[['a,'a \<Rightarrow> 'a] \<Rightarrow> 'a, ['a,'a] \<Rightarrow> 'a, 'a, 'a] \<Rightarrow> 'a\<close> and
+    OrdRec_default :: \<open>'a\<close>
+  assumes 
+    predset_typ : "predSet : Ord \<rightarrow> SetOf Ord" and
+    predset_ax :  "\<forall>\<beta> : Ord. \<forall>\<alpha> : Ord. \<alpha> \<in> predSet \<beta> \<longleftrightarrow> \<alpha> < \<beta>" and
+    supord_typ :  "supOrd : SetOf Ord \<rightarrow> Ord" and
+    supord_ax :  "\<forall>x : SetOf Ord. \<forall>\<alpha>. \<alpha> \<in> x \<longrightarrow> \<alpha> < supOrd x" and
+    ordrec_0 :  "\<forall>G. \<forall>F. \<forall>A. OrdRec G F A 0 = A" and
+    ordrec_succ_ax :  "\<forall>G. \<forall>F. \<forall>A. \<forall>b : Ord. 
+       OrdRec G F A (succ b) = F (succ b) (OrdRec G F A b)" and
+    ordrec_lim_ax :  "\<forall>G. \<forall>F. \<forall>A. \<forall>\<mu> : Limit. 
+       OrdRec G F A \<mu> = G \<mu> (\<lambda>j. if j : Ord \<and> j < \<mu> then OrdRec G F A j else OrdRec_default)"                    
 
 syntax
   "_lam_ord" :: "[pttrn, 'a, 'a] => 'a" (\<open>(3\<lambda>_<_./ _)\<close> 10)
 translations
   "\<lambda>i < j. F" \<rightleftharpoons> "CONST lam (CONST predSet j) (\<lambda>i. F)"
 
-context OrdRec_sig begin
-ML \<open>val ordrec_axs = 
-  [("predset_typ", @{prop "predSet : Ord \<rightarrow> SetOf Ord"}),
-   ("predset_ax", @{prop "\<forall>\<beta> : Ord. \<forall>\<alpha> : Ord. \<alpha> \<in> predSet \<beta> \<longleftrightarrow> \<alpha> < \<beta>"}),
-   ("supord_typ", @{prop "supOrd : SetOf Ord \<rightarrow> Ord"}),
-   ("supord_ax", @{prop "\<forall>x : SetOf Ord. \<forall>\<alpha>. \<alpha> \<in> x \<longrightarrow> \<alpha> < supOrd x"}),
-   ("ordrec_0", @{prop "\<forall>G. \<forall>F. \<forall>A. OrdRec G F A 0 = A"}),
-   ("ordrec_succ_ax", @{prop "\<forall>G. \<forall>F. \<forall>A. \<forall>b : Ord. 
-      OrdRec G F A (succ b) = F (succ b) (OrdRec G F A b)"}),
-   ("ordrec_lim_ax", @{prop "\<forall>G. \<forall>F. \<forall>A. \<forall>\<mu> : Limit. 
-      OrdRec G F A \<mu> = G \<mu> (\<lambda>j. if j < \<mu> then OrdRec G F A j else OrdRec_default)"})]\<close>
-end
-
-local_setup \<open>snd o mk_main_class "OrdRec" ordrec_axs\<close>
 syntax
   "_RepFun_ord"  :: "['a, pttrn, 'a] => 'a"    (\<open>(1{ _ |/ _<_ })\<close> [51,0,51])
   "_Collect_ord" :: "[pttrn, 'a, bool ] \<Rightarrow> 'a" (\<open>(1{ _<_ |/ _ })\<close>)
@@ -36,7 +34,6 @@ translations
   "\<Union> i<j. B"   \<rightleftharpoons> "CONST Union {B | i < j}"
 
 context OrdRec begin
-
 
 thm predset_typ supord_typ 
 thm predset_ax supord_ax
@@ -99,15 +96,15 @@ lemma ordrec_succ :
 lemma ordrec_lim : 
   assumes "u : Limit" 
     shows "OrdRec G F A u = 
-    G u (\<lambda>j. if j < u then OrdRec G F A j else OrdRec_default)"
-  using ordrec_lim_ax assms by auto
+    G u (\<lambda>j. if j : Ord \<and> j < u then OrdRec G F A j else OrdRec_default)"
+  using ordrec_lim_ax assms by auto 
 
 lemmas repfun_ord_set = repfun_set[OF predset_set]
 lemmas repfun_lim_set = repfun_ord_set[OF limit_ord]
 
 lemma repfun_ordrec_lim_restrict :
   assumes u : "u : Limit"
-    shows "{ (if j < u then OrdRec G F A j else OrdRec_default) | j < u } = 
+    shows "{ (if j : Ord \<and> j < u then OrdRec G F A j else OrdRec_default) | j < u } = 
            { OrdRec G F A j | j < u}"
    by (rule repfun_cong[OF lim_predset_set[OF u] lim_predset_set[OF u]], 
        rule refl, drule predsetD[OF limit_ord[OF u]], auto)

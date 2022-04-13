@@ -564,6 +564,12 @@ next
   show ?case using tier_limit_subset[OF IH(1) i IH(3)] by simp
 qed
 
+lemma tier_increasing_leq : 
+  assumes i:"i : Ord" and j:"j : Ord"
+  shows "i \<le> j \<Longrightarrow> Tier i \<subseteq> Tier j"
+  unfolding leq_iff[OF i j]
+  using tier_increasing[OF i j] by auto
+
 lemma greatest_tier : 
   assumes i : "i : Ord" and j : "j : Ord"
       and b : "b \<in> Tier i" and c : "c \<in> Tier j"

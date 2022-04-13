@@ -54,13 +54,13 @@ lemma setof_mset :
   shows "<set, x'> : mSet"
 proof (rule msetI)
   let ?i = "supOrd {mrank b | b \<in> x'}"
-  have "?i : Ord" and "\<forall>b\<in>x'. mrank b < ?i"
+  have "?i : Ord" and "\<forall>b\<in>x'. mrank b \<le> ?i"
     using supord_iff[OF mrank_repfun_setof[OF x] repfunI[OF setof_set[OF x] _ ord_setmem]] 
           supord_ord[OF mrank_repfun_setof[OF x]] mrank_ord[OF setof_mem[OF x]] by auto
   moreover have "\<forall>b\<in>x'. b \<in> Tier (mrank b)"
     using mrank_tier[OF setof_mem[OF x]] by auto
   ultimately have "\<forall>b \<in> x'. b \<in> Tier ?i"
-    using tier_increasing[OF mrank_ord[OF setof_mem[OF x]] \<open>?i : Ord\<close>] by auto
+    using tier_increasing_leq[OF mrank_ord[OF setof_mem[OF x]] \<open>?i : Ord\<close>] by auto
   hence "\<forall>b \<in> x'. b \<in> Tier ?i \<ominus> set" 
     using exsetI[OF tier_set[OF \<open>?i : Ord\<close>]] b by auto
   thus "<set,x'> : M"

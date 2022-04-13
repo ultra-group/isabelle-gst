@@ -12,7 +12,7 @@ class OrdRec = GZF + Ordinal +
     predset_typ : "predSet : Ord \<rightarrow> SetOf Ord" and
     predset_ax :  "\<forall>\<beta> : Ord. \<forall>\<alpha> : Ord. \<alpha> \<in> predSet \<beta> \<longleftrightarrow> \<alpha> < \<beta>" and
     supord_typ :  "supOrd : SetOf Ord \<rightarrow> Ord" and
-    supord_ax :  "\<forall>x : SetOf Ord. \<forall>\<alpha>. \<alpha> \<in> x \<longrightarrow> \<alpha> < supOrd x" and
+    supord_ax :  "\<forall>x : SetOf Ord. \<forall>\<alpha>. \<alpha> \<in> x \<longrightarrow> \<alpha> \<le> supOrd x" and
     ordrec_0 :  "\<forall>G. \<forall>F. \<forall>A. OrdRec G F A 0 = A" and
     ordrec_succ_ax :  "\<forall>G. \<forall>F. \<forall>A. \<forall>b : Ord. 
        OrdRec G F A (succ b) = F (succ b) (OrdRec G F A b)" and
@@ -76,7 +76,7 @@ lemma predsetD :
 
 lemma supord_iff : 
   assumes x : "x : SetOf Ord" and i : "i \<in> x"
-  shows "i < supOrd x"
+  shows "i \<le> supOrd x"
   using supord_ax assms by auto
 
 lemmas supord_ord = funE[OF supord_typ]

@@ -32,7 +32,7 @@ proof (rule funI, unfold mPow_eq, rule msetofI, rule msetI)
             pow_mem[OF \<open>x' : Set\<close>] by auto
     thus "y \<in> Tier (succ j)" using tierI_mset[OF j] \<open>y = <set,y'>\<close> by auto
     show "\<not> Excluded set y" 
-      using excluded_set_1
+      using not_set_excluded_mset
       unfolding \<open>y = <set,y'>\<close> by auto
   qed
 

@@ -70,10 +70,10 @@ qed
 
 end
 
-(* ML_file \<open>../../ModelKit/Tools/lift_model_sig.ML\<close>
+ML_file \<open>../../ModelKit/Tools/lift_model_sig.ML\<close>
 ML_file \<open>../../Tools/transfer_all_method.ML\<close>
 
-typedecl d0  
+(* typedecl d0  
 
 instance d0 :: GZF_Model  sorry
 
@@ -82,20 +82,15 @@ typedef (overloaded) d1 = \<open>Set.Collect (\<lambda>x :: d0. x : M)\<close>
 
 setup_lifting type_definition_d1 
 
-interpretation ConnectionBase Abs_d1 Rep_d1 pcr_d1
+interpretation ConnectionBase Abs_d1 Rep_d1 pcr_d1 mdefault
   by (unfold ConnectionBase_def, rule,
-      rule type_definition_d1, unfold pcr_d1_def cr_d1_def, auto)
+      rule type_definition_d1, unfold pcr_d1_def cr_d1_def, auto, rule mdefault_m)
 
 instantiation d1 :: GZF 
 begin
-  local_setup \<open>lift_mconsts @{thms mGZF_resp} (@{typ d1}) mGZF\<close> 
+  local_setup \<open>lift_mconsts @{thms mGZF_resp} (@{typ d1}) mGZF\<close>  
   instance 
-    by (intro_classes, unfold funty_eq depfunty_eq, 
-        transfer_all, insert mGZF_axioms)
-end
-
-
-lemma "(x :: d1) \<notin> \<emptyset>" using emp by auto
- *)
-
+  by (intro_classes, unfold funty_eq depfunty_eq,
+      transfer_all, insert mGZF_axioms)
+end *)
 end

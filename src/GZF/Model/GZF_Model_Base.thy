@@ -12,9 +12,9 @@ ML \<open>val set_model = mcomp
         (@{term \<open>\<emptyset>\<close>}, 
          @{term "(\<lambda>_ x. \<P> x) :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"}, 
          @{term "(\<lambda>_ _. \<emptyset>) :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"}),
-       alpha_typ = @{term "Set"},
-       excludes_formulas = [@{prop \<open>\<not> Excluded set <set, x'>\<close>}]
-    })
+       alpha_typ = @{term "Set"}
+    }),
+  excludes_formulas = [("not_set_excluded_mset", @{prop \<open>\<not> Excluded set <set, x'>\<close>})]
  }\<close>
 end
 

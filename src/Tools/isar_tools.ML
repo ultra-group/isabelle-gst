@@ -21,7 +21,7 @@ fun make_defns_trms lthy =
 
 (*Defines a list of triples of (name,trm,mx)*)
 val make_defns = List.foldl (fn ((iden, trm, mx), lthy) => make_defn iden trm mx lthy)
-
+val last_field = List.last o (String.fields (fn c => c = #"."))
 (*Various aliases for creating values of type mixfix*)
 val nsyn = Mixfix.NoSyn 
 fun mk_mixfix (str, ns, m) = Mixfix.Mixfix (Input.string str, ns, m, Position.no_range)

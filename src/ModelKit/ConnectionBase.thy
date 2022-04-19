@@ -3,11 +3,13 @@ theory ConnectionBase
 begin
 
 locale ConnectionBase = opening lifting_syntax +
-  fixes Abs :: \<open>('a :: ModelBase) \<Rightarrow> 'b\<close>
+  fixes Abs :: \<open>('a :: ModelBase') \<Rightarrow> 'b\<close>
     and Rep :: \<open>'b \<Rightarrow> 'a\<close>
     and rel :: \<open>'a \<Rightarrow> 'b \<Rightarrow> bool\<close> (infix \<open>\<simeq>\<close> 50)
-  assumes tydef : \<open>type_definition Rep Abs (Set.Collect (\<lambda>x. x : M))\<close>
+    and mdefault :: \<open>'a\<close>
+  assumes tydef   : \<open>type_definition Rep Abs (Set.Collect (\<lambda>x. x : M))\<close>
       and rel_def : \<open>rel x y = (x = Rep y)\<close>
+      and mdefault_m : "mdefault : M"
 begin
 
 interpretation c : type_definition \<open>Rep :: 'b \<Rightarrow> 'a\<close> \<open>Abs :: 'a \<Rightarrow> 'b\<close> \<open>(Set.Collect (\<lambda>x. x : M))\<close>
@@ -40,15 +42,25 @@ lemma ceq_abs_refl [simp] :
   unfolding rel_def 
   using assms by auto
 
-subsection \<open>Transfer rules for logical constants\<close>
+subsection \<open>Transfer rules for soft typing\<close>
 
 lemma typing_transfer [transfer_rule]: "(R ===> (R ===> iff) ===> iff) (:) (:)"
   unfolding rel_fun_def has_ty_def by auto
+
+lemma int_transfer [transfer_rule]: "((R ===> iff) ===> (R ===> iff) ===> (R ===> iff)) (\<triangle>) (\<triangle>)"
+  unfolding rel_fun_def inter_ty_def by auto
+
+subsection \<open>Transfer rules for logical constants\<close>
+
 
 lemma eq_transfer [transfer_rule] : 
   "((\<simeq>) ===> (\<simeq>) ===> (\<longleftrightarrow>)) (=) (=)" 
   by auto
 
+(* lemma higher_order_eq_transfer [transfer_rule] : 
+  "(((\<simeq>) ===> iff) ===> ((\<simeq>) ===> iff) ===> (\<longleftrightarrow>)) (\<lambda>P Q. m\<forall>x. P x \<longleftrightarrow> Q x) (=)" 
+   sorry*)
+  
 lemma all_transfer [transfer_rule] :
   "(((\<simeq>) ===> (\<longleftrightarrow>)) ===> (\<longleftrightarrow>)) (mall) (All)"
 proof (rule)
@@ -222,6 +234,68 @@ proof
         using funE[OF funE[OF F_typ]] by auto
       hence "P F \<longleftrightarrow> Q ?G" using FG by auto
       thus "P F" using Q by auto
+    qed
+  qed
+qed
+
+lemma limfun_all_transfer [transfer_rule] : 
+  "((((\<simeq>) ===> ((\<simeq>) ===> (\<simeq>)) ===> (\<simeq>)) ===> (\<longleftrightarrow>)) ===> (\<longleftrightarrow>)) 
+      (\<lambda>P. \<forall>G : LimFun. P G) (\<lambda>P. \<forall>G. P G)"
+proof
+  fix P Q assume "(((\<simeq>) ===> ((\<simeq>) ===> (\<simeq>)) ===> (\<simeq>)) ===> (\<longleftrightarrow>)) P Q"
+  hence FG: 
+    "\<And>G G'. (\<And>x x'. x \<simeq> x' \<Longrightarrow> (\<And>f f'. ((\<simeq>) ===> (\<simeq>)) f f'  
+      \<Longrightarrow> G x f = Rep (G' x' f'))) \<Longrightarrow> P G \<longleftrightarrow> Q G'"
+    unfolding rel_fun_def rel_def by blast
+  show "(\<forall>G : LimFun. P G) \<longleftrightarrow> (\<forall>G. Q G)"
+  proof (rule)
+    assume P:"\<forall>G : LimFun. P G"
+    show "\<forall>G'. Q G'"
+    proof
+      fix G'
+      let ?G = "\<lambda>x f. Rep (G' (Abs x) (\<lambda>y. Abs (f (Rep y))))"
+      have G_typ:"?G : LimFun" 
+        unfolding LimFun_def
+        by (rule intI, rule funI, rule funI, auto, 
+            rule tyI, use forceM_eq[OF M_rep] in auto)
+      have "\<And>x x' f f'. x \<simeq> x' \<Longrightarrow> ((\<simeq>) ===> (\<simeq>)) f f' 
+              \<Longrightarrow> ?G x f = Rep (G' x' f')" 
+        unfolding rel_fun_def rel_def by (auto)
+      hence "P ?G \<longleftrightarrow> Q G'" using FG by auto
+      thus "Q G'" using P G_typ by auto
+    qed
+  next
+    assume Q:"All Q"
+    show "\<forall>G : LimFun. P G" 
+    proof (rule) 
+      fix G :: "'a \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" 
+      assume G_typ:"G : LimFun"
+      let ?G' = "\<lambda>x f. Abs (G (Rep x) (\<lambda>y. Rep (f (Abs (forceM y)))))"
+      have "\<And>x x' f f'. x \<simeq> x' \<Longrightarrow> ((\<simeq>) ===> (\<simeq>)) f f'  \<Longrightarrow> G x f = Rep (?G' x' f')" 
+        unfolding rel_fun_def rel_def  
+      proof -
+        fix x x' f f' assume 
+          x_eq : "x = Rep x'" and
+          f_eq : "\<forall>x y. x = Rep y \<longrightarrow> f x = Rep (f' y)"
+        hence 
+          "\<forall>a. f (forceM a) = Rep (f' (Abs (forceM a)))"
+          by (metis forceM_m M_abs_inverse)
+        hence 
+          "G x (\<lambda>a. f (forceM a)) = Rep (?G' x' f')"
+          using x_eq funE[OF funE[OF limfunD1[OF G_typ]] funI] by auto
+        moreover have "f : M \<rightarrow> M" 
+        proof (rule funI)
+          fix x :: \<open>'a\<close> assume "x : M"
+          hence "x = Rep (Abs x)" by auto
+          hence "f x = Rep (f' (Abs x))" using f_eq by blast
+          thus "f x : M" using M_rep by auto
+        qed
+        ultimately show 
+          "G x f = Rep (?G' x' f')"
+          using limfunD2[OF G_typ] x_eq M_rep funI[OF ] by auto
+      qed
+      hence "P G \<longleftrightarrow> Q ?G'" using FG by auto
+      thus "P G" using Q by auto
     qed
   qed
 qed

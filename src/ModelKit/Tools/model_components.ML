@@ -3,13 +3,13 @@
 datatype variant = vari of
   { tag_name  : string,
     vcases    : term * term * term,
-    alpha_typ : term,
-    excludes_formulas : term list } 
+    alpha_typ : term } 
 
 datatype model_comp = mcomp of 
   { name : string,
     deps : string list,
-    variant : variant option }
+    variant : variant option,
+    excludes_formulas : (string * term) list }
 
 fun get_mcomp_tag (mcomp {variant,...}) = case variant of
     SOME (vari v) => #tag_name v 
@@ -42,22 +42,22 @@ fun alpha_typ_formula tag styp =
 fun M_formula B = 
   HOLogic.mk_Trueprop (mk_styping_trm B @{typ 'a} @{term M}) 
 
-fun mk_excludes_assms tag_name ts =
+(* fun mk_excludes_assms tag_name ts =
   (map (fn i => "excluded_" ^ tag_name ^"_"^ (Int.toString i)) 
-   (1 upto (length ts))) ~~ ts
+   (1 upto (length ts))) ~~ ts *)
 
 fun tag_trm name = Free (name, @{typ 'a})
 fun mdefault_trm name = Free (name ^ "_mdefault", @{typ 'a})
 
-fun get_mcomp_imports _    [] = [@{locale ModelBase}]
+fun get_mcomp_imports _    [] = [@{class ModelBase'}]
   | get_mcomp_imports ctxt ms = map (get_class ctxt) ms 
   
-fun mk_mcomp_class (mcomp {name, deps, variant}) ctxt =
+fun mk_mcomp_class (mcomp {name, deps, variant, excludes_formulas}) ctxt =
   let val imports = get_mcomp_imports ctxt deps
       val fixes = [(name ^ "_mdefault", SOME @{typ 'a}, NoSyn)]
       val mdefault_m = (name ^ "_mdefault_m", M_formula (mdefault_trm name))
   in case variant of    
-  SOME (vari {tag_name, vcases, alpha_typ, excludes_formulas}) => 
+  SOME (vari {tag_name, vcases, alpha_typ}) => 
       let val tag = tag_trm tag_name
           val tag_fix = (tag_name, SOME @{typ 'a}, NoSyn)
           val (v0, v_succ, v_lim) = vcases
@@ -68,9 +68,9 @@ fun mk_mcomp_class (mcomp {name, deps, variant}) ctxt =
              ("v_" ^ tag_name ^ "_succ", mk_variants_succ tag v_succ),
              ("v_" ^ tag_name ^ "_limit", mk_variants_lim tag v_lim),
              ("alpha_" ^ tag_name, alpha_typ_formula tag alpha_typ)]
-           @ mk_excludes_assms tag_name excludes_formulas
+           @  excludes_formulas
        in mk_class name imports (tag_fix :: fixes) assms ctxt end
-   | NONE => mk_class name imports fixes [mdefault_m] ctxt end
+   | NONE => mk_class name imports fixes (mdefault_m :: excludes_formulas) ctxt end
 
 (*------ Model component morphisms -------*)
 

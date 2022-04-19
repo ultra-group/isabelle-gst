@@ -3,7 +3,7 @@ theory ModelComponents
   keywords "translate_axioms" "resp_thms" :: thy_goal 
 begin
 
-context ModelBase begin
+context ModelBase' begin
 ML_file \<open>Tools/model_components.ML\<close>
 ML_file \<open>Tools/translate_axioms.ML\<close>
 end

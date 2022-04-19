@@ -158,7 +158,7 @@ lemma bpredI [typ_intro]: "(\<And>x y. x : \<alpha> \<Longrightarrow> P x y \<Lo
   unfolding BinPred_def by (unfold_typs, auto)
 
 subsection \<open>Intersection types\<close>
-definition inter_ty :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool)" (infix "\<triangle>" 45)
+definition inter_ty :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool)" (infix "\<triangle>" 50)
   where [typdef] : "P \<triangle> Q \<equiv> \<lambda>x. P x \<and> Q x"
 
 lemma intE : 
@@ -205,9 +205,41 @@ proof (rule funI)
   thus "f x : R" by (rule subtypE[OF \<open>Q << R\<close>])
 qed
 
+subsection \<open>Negation type\<close>
 
-definition forall_ty (binder "\<questiondown>" 10)
-  where "\<questiondown>\<alpha>. P \<alpha> \<equiv> \<lambda>x. \<forall>\<alpha>. P \<alpha> x"
+definition not_typ :: \<open>('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool)\<close> (\<open>\<sim>\<close>)
+  where "\<sim> P \<equiv> (\<lambda>x. \<not> P x)"
+
+lemma not_typ_iff : 
+  "x : \<sim> P \<longleftrightarrow> \<not> x : P"
+  unfolding not_typ_def has_ty_def 
+  by auto
+
+lemmas not_typD = iffD1[OF not_typ_iff]
+   and not_typI = iffD2[OF not_typ_iff]
+
+
+subsection \<open>Negation type\<close>
+
+definition empty_typ :: \<open>('a \<Rightarrow> bool)\<close> (\<open>\<bottom>\<close>)
+  where "\<bottom> \<equiv> (\<lambda>x. False)"
+
+lemma empty_typ_iff : 
+  "x : \<bottom> \<longleftrightarrow> False"
+  unfolding empty_typ_def has_ty_def 
+  by auto
+ 
+lemmas empty_typD = iffD1[OF empty_typ_iff ]
+   and empty_typI = iffD2[OF empty_typ_iff]
+
+lemma neg_empty : "\<not> x : \<bottom>"
+  using empty_typD by auto
+
+lemma not_empty : "x : \<sim> \<bottom>"
+  using not_typI[OF neg_empty] . 
+
+
+
 ML \<open>domain_type (Term.fastype_of @{term \<open>F :: 'a \<Rightarrow> 'b\<close>})\<close>
 
 ML \<open>
@@ -275,8 +307,27 @@ fun split_fun_ty ((Const ("Soft_Types.fun_ty",_)) $ t $ s) = (t,s)
 fun is_fun_typing trm = is_typing trm andalso 
     (is_fun_ty (snd (split_typings trm)) orelse is_depfun_ty (snd (split_typings trm))) 
 
+fun dest_fun ((Const ("Soft_Types.fun_ty",_)) $ t $ s) = (t,s)
+  | dest_fun t = raise TERM ("not a simple fun type", [t])
+
+fun dest_depfun ((Const ("Soft_Types.depfun_ty",_)) $ P $ Qx) = 
+      (P, snd (Term.strip_abs_eta 1 Qx))
+  | dest_depfun t = raise TERM ("not a dependent fun type", [t])
+
 fun get_styps ((Const ("Soft_Types.fun_ty",_)) $ t $ s) = t :: get_styps s
+  | get_styps ((Const ("Soft_Types.depfun_ty",_)) $ t $ s) = t :: get_styps s
   | get_styps t = [t] 
+
+fun strip_sftyp' sftyp = 
+  case sftyp of
+    ((Const ("Soft_Types.fun_ty",_)) $ _ $ _) => 
+      (fn (P,Q) => strip_sftyp' P @ strip_sftyp' Q) (dest_fun sftyp)
+  | ((Const ("Soft_Types.depfun_ty",_)) $ _ $ _) => 
+      (fn (P,Q) => strip_sftyp' P @ strip_sftyp' Q) (dest_depfun sftyp)
+  | _ => [sftyp]
+  
+val strip_sftyp = (fn xs => ((rev o tl) xs, hd xs)) o rev o strip_sftyp'
+
 
 (*Let B be a term, and \<tau> be the type of B, and P be a soft-type on \<tau>:
   Then \<open>mk_styping_trm B \<tau> P\<close> and returns the term \<open>B : P\<close>*)
@@ -295,5 +346,10 @@ fun t ~> s =
   let val dom = domain_type o fastype_of
   in Const ("Soft_Types.fun_ty", fun_sty_typ (dom t) (dom s)) $ t $ s end
 \<close>
+ML \<open>val it = strip_sftyp \<^term>\<open>(\<Pi> x:P. Q x \<rightarrow> R) \<close>\<close>
+ML \<open>map (fst o strip_type o type_of) (fst it)\<close>
+
+
+
 
 end

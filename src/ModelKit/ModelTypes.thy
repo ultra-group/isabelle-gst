@@ -88,9 +88,16 @@ next
 qed
 
 lemmas tag_set_pair = pair_pair[OF ord_pmem[OF tag_ord] smem_pmem[OF set_setmem]]
+end
 
+class ModelBase' = ModelBase +
+  fixes mdefault :: \<open>'a\<close>
+  assumes mdefault_m : "mdefault : M"
+
+context ModelBase' begin
 
 subsection \<open>Binders restricted to the model\<close>
+
 (*TODO: a 'Binder class parameterised by a restriction,
         so we can autogenerate definitions/lemmas from a \<forall> quantifier *)
 definition mall :: \<open>('a \<Rightarrow> bool) \<Rightarrow> bool\<close> (binder \<open>m\<forall>\<close> 10)
@@ -120,7 +127,6 @@ lemma mexI [intro] :
   unfolding mex_def 
   using texI assms by auto 
 
-
 subsection \<open>Type restricted model binders\<close>
 
 definition mtall :: \<open>['a \<Rightarrow> bool, 'a \<Rightarrow> bool] \<Rightarrow> bool\<close>
@@ -137,6 +143,38 @@ definition mtuniq :: \<open>['a \<Rightarrow> bool, 'a \<Rightarrow> bool] \<Rig
 
 definition mtdefdes :: \<open>['a \<Rightarrow> bool, 'a \<Rightarrow> bool, 'a] \<Rightarrow> 'a\<close>
   where "mtdefdes P Q d \<equiv> mdefdes (\<lambda>x. x : P \<and> Q x) d"
+
+subsection \<open>Coercing into the model and LimFun\<close>
+
+definition forceM :: \<open>'a \<Rightarrow> 'a\<close>
+  where "forceM b \<equiv> if b : M then b else mdefault"
+
+lemma forceM_m : "forceM b : M"
+  unfolding forceM_def
+  using mdefault_m by auto
+  
+lemma forceM_eq : 
+  assumes "b : M"
+  shows "forceM b = b"
+  unfolding forceM_def
+  using assms by auto
+
+definition LimFun 
+  where "LimFun \<equiv> M \<rightarrow> (M \<rightarrow> M) \<rightarrow> M \<triangle> (\<lambda>G. \<forall>u : M. \<forall>f : M \<rightarrow> M. G u f = G u (\<lambda>j. f (forceM j)))"
+
+lemma limfunD1 : 
+  assumes "G : LimFun"
+  shows "G : M \<rightarrow> (M \<rightarrow> M) \<rightarrow> M"
+  using assms
+  unfolding LimFun_def
+  by (rule intE1)
+
+lemma limfunD2 : 
+  assumes "G : LimFun" "u : M" "f : M \<rightarrow> M"
+  shows "G u f = G u (\<lambda>j. f (forceM j))"
+  using assms
+  unfolding LimFun_def tall_def has_ty_def inter_ty_def
+  by (auto)
 
 subsection \<open>Model Rank operator\<close>
 

@@ -5,6 +5,8 @@ fun quant_trans @{term \<open>All :: ('a \<Rightarrow> bool) \<Rightarrow> bool\
     = @{term \<open>tall (M \<rightarrow> M)\<close>}
   | quant_trans @{term \<open>All :: (('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> bool) \<Rightarrow> bool\<close>} 
     = @{term \<open>tall (M \<rightarrow> M \<rightarrow> M)\<close>}
+  | quant_trans @{term \<open>All :: (('a \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a) \<Rightarrow> bool) \<Rightarrow> bool\<close>} 
+    = @{term \<open>tall LimFun\<close>}
   | quant_trans @{term \<open>Ex :: ('a \<Rightarrow> bool) \<Rightarrow> bool\<close>}
       = @{term mex}
   | quant_trans @{term \<open>Uniq :: ('a \<Rightarrow> bool) \<Rightarrow> bool\<close>}
@@ -21,6 +23,15 @@ fun quant_trans @{term \<open>All :: ('a \<Rightarrow> bool) \<Rightarrow> bool\
 
 fun translate_term ctxt msig =
   map_aterms (quant_trans o msig_term_app ctxt msig)
+
+fun gen_axiom_goals ctxt msig = 
+  let 
+    val axioms = map snd (get_locale_axioms (get_thy ctxt) (#feature msig))
+    val conv_typing = (HOLogic.mk_Trueprop o unfold_fun_typing o HOLogic.dest_Trueprop)
+    val axioms' = map (fn phi => if is_fun_typing (HOLogic.dest_Trueprop phi) then conv_typing phi else phi) axioms
+  in 
+    map (translate_term ctxt msig) axioms'
+  end
 
 (*Generating goals for proving respectfulness theorems for model consts*)
 fun rsp_goal' i m (t,t') = 
@@ -77,15 +88,6 @@ fun simp_rsp trm =
     else simp_rsp trm' 
   end
 
-fun gen_axiom_goals ctxt msig = 
-  let 
-    val axioms = map snd (get_locale_axioms (get_thy ctxt) (#feature msig))
-    val (typings, axs) = List.partition (is_fun_typing o HOLogic.dest_Trueprop) axioms
-    val conv_typings = map (HOLogic.mk_Trueprop o unfold_fun_typing o HOLogic.dest_Trueprop) typings
-  in 
-    map (translate_term ctxt msig) (conv_typings @ axs) 
-  end
-
 val gen_resp_goal = simp_rsp o rsp_goal  
 fun gen_resp_goals ctxt msig = 
   filter (fn p => not (p = @{prop True})) 
@@ -106,13 +108,14 @@ fun src_to_morph src ctxt = let
     val model = Code_Runtime.value ctxt model_morph_result_cookie ("", text)
   in model end;
 
-fun translate_axioms_cmd (thm_name,src) ctxt = let
-  val morph = src_to_morph src ctxt 
-  val goals = gen_axiom_goals ctxt morph 
-in 
+fun translate_axioms_cmd (thm_name,src) ctxt = 
+  let
+    val morph = src_to_morph src ctxt 
+    val goals = gen_axiom_goals ctxt morph 
+  in 
      Proof.refine_singleton (Method.Basic (fn _ => Method.succeed)) 
       ((Proof.theorem NONE (after_qed thm_name) (map (fn t => [(t,[])]) goals) ctxt)) 
-end
+  end
 
 fun resp_thms_cmd (thm_name,src) ctxt = 
   let

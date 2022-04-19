@@ -19,7 +19,7 @@ proof -
   show "m\<omega> : mLimit"
     using momega_mlimit .
   show "m\<forall>b : mOrd. \<not> b \<lless> m0"
-    using mzero_ax .
+    by (insert mzero_ax)
   show "m\<forall>a : mOrd. m\<forall>b : mOrd. (a \<lless> msucc b) = (a \<lless> b \<or> a = b)"
     using msucc_ax .
   show "m\<forall>\<mu> : mLimit. \<mu> = m\<omega> \<or> m\<omega> \<lless> \<mu>"
@@ -32,11 +32,11 @@ proof -
     using mlt_linear_ax .
   show "\<forall>P. (m\<forall>i : mOrd. (m\<forall>j : mOrd. j \<lless> i \<longrightarrow> P j) \<longrightarrow> P i) \<longrightarrow> mtall mOrd P"
     using mlt_induct_ax .
-  show "mLimit = (mOrd \<triangle> (\<lambda>\<mu>. m0 \<lless> \<mu> \<and> (m\<forall>j : mOrd. j \<lless> \<mu> \<longrightarrow> msucc j \<lless> \<mu>)))"
-    using mlimit_def_ax .
+  show "m\<forall>u. mLimit u = (mOrd \<triangle> (\<lambda>\<mu>. m0 \<lless> \<mu> \<and> (m\<forall>j : mOrd. j \<lless> \<mu> \<longrightarrow> msucc j \<lless> \<mu>))) u"
+    using mlimit_def_ax by auto
 qed
 
-resp_thms mOrdinal_rsp : mOrdinal
+resp_thms mOrdinal_resp : mOrdinal
  by (rule mzero_m, rule msucc_m, rule momega_m, 
     rule Ordinal_Model_mdefault_m)
 

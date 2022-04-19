@@ -56,7 +56,7 @@ qed
 lemma not_excluded_mset :
   assumes x : "x : mSet"
     shows "\<not> Excluded set x"
-  by (rule msetE[OF x], metis excluded_set_1)
+  by (rule msetE[OF x], metis not_set_excluded_mset)
 
 lemma mset_smem_subtyp :"mSet << SetMem"
 proof (rule subtypI) 

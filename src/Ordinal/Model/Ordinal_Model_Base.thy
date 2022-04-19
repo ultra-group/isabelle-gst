@@ -12,8 +12,8 @@ ML \<open>val ord_model = mcomp
         (@{term \<open>{0}\<close>}, 
          @{term "(\<lambda>j x. {j}) :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"}, 
          @{term "(\<lambda>\<mu> f. {\<mu>}) :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"}),
-      alpha_typ = @{term \<open>Ord\<close>},
-      excludes_formulas = [@{prop \<open>\<not> Excluded ord <ord, j>\<close>}]})} \<close>
+      alpha_typ = @{term \<open>Ord\<close>}}),
+   excludes_formulas = []}\<close>
 end
 local_setup \<open>snd o (mk_mcomp_class ord_model)\<close>
 

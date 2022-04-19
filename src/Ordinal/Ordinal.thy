@@ -5,7 +5,7 @@ begin
 context Ordinal begin
 (*Recalling signature and axioms of feature:*)
 (* - Types and axioms for \<open>zero\<close>, \<open>succ\<close> and \<open>\<omega>\<close>: *)
-thm zero_typ succ_typ omega_typ zero_ax succ_ax omega_ax Limit_def
+thm zero_typ succ_typ omega_typ zero_ax succ_ax omega_ax Limit_ax
 (* - Axioms specifying that \<open><\<close> is a well-order on the ordinals:*)  
 thm lt_trans lt_notsym lt_linear lt_induct
 
@@ -265,18 +265,21 @@ lemma lt_zero_lt :
 
 subsection \<open>Limit Ordinals\<close>
 
+lemma Limit_def : 
+  "Limit = (Ord \<triangle> (\<lambda>\<mu>. 0 < \<mu> \<and> (\<forall>j : Ord. j < \<mu> \<longrightarrow> succ j < \<mu>)))"
+  using Limit_ax by auto
 
 lemma limit_ord : 
   assumes "\<mu> : Limit"
     shows "\<mu> : Ord"
   using assms unfolding Limit_def 
-  by (unfold_typs)
+  by unfold_typs
 
 lemma limit_lt_zero : 
   assumes "\<mu> : Limit"
     shows "0 < \<mu>"
   using assms unfolding Limit_def 
-  by (unfold_typs)
+  by unfold_typs  
 
 lemma limit_nonzero : 
   assumes "\<mu> : Limit"

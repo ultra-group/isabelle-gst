@@ -20,13 +20,13 @@ subsection \<open>PairMem soft-type\<close>
 lemma pairmemI:
   assumes p:"pair a b : Pair"
     shows "a : PairMem" "b : PairMem"
-  unfolding PairMem_def has_ty_def
+  unfolding has_ty_def using PairMem_def
   using p by auto
 
 lemma pairmemI_eq:
   assumes p:"p : Pair" "p = pair a b"
     shows "a : PairMem" "b : PairMem"
-  unfolding PairMem_def has_ty_def
+  unfolding has_ty_def using PairMem_def
   using p by auto
 
 subsection \<open>Equality of ordered pairs\<close>

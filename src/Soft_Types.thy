@@ -345,9 +345,18 @@ fun mk_tall (x, T, P, Q) = tall_const T $ P $ absfree (x, T) Q;
 fun t ~> s = 
   let val dom = domain_type o fastype_of
   in Const ("Soft_Types.fun_ty", fun_sty_typ (dom t) (dom s)) $ t $ s end
+
+fun mk_styping trm styp = mk_styping_trm trm (fastype_of trm) styp
+
+fun int_ty_const T = Const("Soft_Types.inter_ty", 
+    (T --> @{typ bool}) --> (T --> @{typ bool}) --> (T --> @{typ bool}))
+fun mk_int_ty t1 t2 = (int_ty_const (domain_type (fastype_of t1))) $ t1 $ t2
+
 \<close>
+
 ML \<open>val it = strip_sftyp \<^term>\<open>(\<Pi> x:P. Q x \<rightarrow> R) \<close>\<close>
-ML \<open>map (fst o strip_type o type_of) (fst it)\<close>
+ML \<open>map (fst o strip_type o type_of) (fst it)
+\<close>
 
 
 

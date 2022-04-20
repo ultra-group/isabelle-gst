@@ -61,14 +61,14 @@ class OPair =
               pair a b = pair c d \<longleftrightarrow> (a = c \<and> b = d)" and
     pair_projs : "\<forall>p : Pair. \<exists>a b. p = pair a b" and
     \<comment> \<open>Simple definitions\<close>
-    PairMem_def : "PairMem = (\<lambda>b. \<exists>p : Pair. \<exists>c. p = pair b c \<or> p = pair c b)"
+    PairMem_def : "\<forall>b. PairMem b = (\<exists>p : Pair. \<exists>c. p = pair b c \<or> p = pair c b)"
 
 
 class app = fixes app :: "['a,'a,'a] \<Rightarrow> bool"
 (*Explain what this is*)
 abbreviation (in app) "app_mem P b \<equiv> \<exists> r : P. \<exists>c. app r b c \<or> app r c b"
 
-class BinRelation = GZF + app + 
+class BinRel = GZF + app + 
   fixes 
     \<comment> \<open>Axiomatized constants\<close>
     BinRel :: \<open>'a \<Rightarrow> bool\<close> and 
@@ -168,83 +168,11 @@ class Nat =
     S_nonzero : "\<forall>n : Nat. \<S> n \<noteq> \<zero>" and
     nat_induct : "\<forall>P. P \<zero> \<longrightarrow> (\<forall>k : Nat. P k \<longrightarrow> P (\<S> k)) \<longrightarrow> (\<forall>n : Nat. P n)"
 
-ML \<open>Term.strip_abs @{term \<open>P :: 'a \<Rightarrow> bool\<close>}\<close>
-ML \<open>fun mk_disj_list ts = List.foldr HOLogic.mk_disj (List.last ts) ((rev o tl o rev) ts)\<close>
-ML \<open>Thm.cterm_of @{context} (mk_disj_list [\<^term>\<open>P :: bool\<close>, \<^term>\<open>Q :: bool\<close>, \<^term>\<open>R :: bool\<close>])\<close>
-ML \<open>type feature_instance =
-  { feature : class,
-    pred : term,
-    default : term }\<close>
-ML \<open>HOLogic.class_equal\<close>
-ML \<open>
-fun get_feature_funtypings thy cla = 
-  filter (is_fun_typing o HOLogic.dest_Trueprop o snd) (get_locale_axioms thy cla)
-fun get_default_param cla = Free (last_field cla ^ "_default", @{typ 'a})\<close>
-
-ML \<open>get_default_param \<^class>\<open>GZF\<close>\<close>
-ML \<open>get_feature_funtypings \<^theory> \<^class>\<open>GZF\<close>\<close>
-
-
-ML \<open>
-fun list_imp ([], B) = B
-  | list_imp (A::As, B) = HOLogic.mk_imp (A, list_imp (As,B))
-
-fun list_disj ([A]) = A
-  | list_disj (A::As) = HOLogic.mk_disj (A, list_disj As)
-  | list_disj [] = error "list_disj: empty list!"
-
-fun app_until_bool trm = 
-  let
-    val typs = (fst o strip_type o fastype_of) trm
-    val idxs = map (fn i => ("x",i)) (0 upto (length typs - 1))
-    val vars = map Var (idxs ~~ typs)
-  in 
-    list_comb (trm,vars) 
-  end
-
-fun all_until_bool (Abs (x,T,P)) = 
-    (HOLogic.all_const T $ Abs (x, T, all_until_bool P)) 
-  | all_until_bool t = t  
-\<close>
-
-ML \<open>fun mk_styping trm styp = mk_styping_trm trm (fastype_of trm) styp\<close>
-ML \<open>fun phi default i sftyp f = 
-  case sftyp of
-    ((Const ("Soft_Types.fun_ty",_)) $ P $ Q) => 
-      let 
-        val x = Var (("x",i), domain_type (fastype_of P))
-        val not_xP = HOLogic.mk_not (mk_styping x P)
-      in not_xP :: phi default (i+1) Q (f $ x) end   
-  | ((Const ("Soft_Types.depfun_ty",_)) $ P $ Q) => 
-      let 
-        val x = Var (("x",i), domain_type (fastype_of P))
-        val not_xP = HOLogic.mk_not (mk_styping x P)
-      in not_xP :: phi default (i+1) (betapply (Q, x)) (f $ x) end   
-  | _ => [HOLogic.mk_eq (f, default)]
-\<close> 
-ML \<open>fun gen_default_form default sftyping =
-  let 
-    val (t, sftyp) = split_typings sftyping
-    val phis = phi default 0 sftyp t
-    val disj = (mk_disj_list o rev o tl o rev) phis
-    val imp = HOLogic.mk_imp (disj, List.last phis)
-    val abs = Term.close_schematic_term imp
-  in all_until_bool abs end\<close>
-
-ML \<open>get_feature_funtypings \<^theory> \<^class>\<open>GZF\<close>\<close>
-ML \<open>fun gen_default_axs thy default cla =
-  let
-    val typings = get_feature_funtypings thy cla
-    val default_prop = (HOLogic.mk_Trueprop o gen_default_form default o HOLogic.dest_Trueprop)
-  in map (fn (iden, trm) => (Binding.name_of iden ^ "_default", default_prop trm)) typings end\<close>
-    
-ML \<open>val GZF_defaults = gen_default_axs \<^theory> (get_default_param \<^class>\<open>GZF\<close>) \<^class>\<open>GZF\<close>\<close>
-ML \<open>val OPair_defaults = gen_default_axs \<^theory> (get_default_param \<^class>\<open>OPair\<close>) \<^class>\<open>OPair\<close>\<close>
-
-local_setup \<open>snd o mk_class "ZFP" [@{class GZF}, @{class OPair}] []  (GZF_defaults @ OPair_defaults)\<close>
-context ZFP begin
-ML \<open>map (Thm.cterm_of \<^context>) it\<close>
-
-
+ML_file \<open>Tools/combine_features.ML\<close>
+local_setup \<open>snd o combine_features "ZFPN" 
+      [(\<^class>\<open>GZF\<close>, Free ("Emp", @{typ 'a})), 
+       (\<^class>\<open>OPair\<close>, Free ("Emp", @{typ 'a})),
+       (\<^class>\<open>Nat\<close>, Free ("Emp", @{typ 'a}))]
+      [Free ("Set", @{typ \<open>'a \<Rightarrow> bool\<close>}), Free ("Pair", @{typ \<open>'a \<Rightarrow> bool\<close>}), Free ("Nat", @{typ \<open>'a \<Rightarrow> bool\<close>})]\<close>
 
 end

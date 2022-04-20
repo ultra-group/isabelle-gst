@@ -1,5 +1,6 @@
 theory SetRel
-  imports "../GST_Features" "../Pair_locale" "../Relations" SetComprehension SetCombinators 
+  imports "../GST_Features" "../OPair/OPair" "../Relations/Relations" 
+    SetComprehension SetCombinators 
 begin
 
 (*Developments that use sets and ordered pairs! 
@@ -171,5 +172,4 @@ interpretation Function
     and dom = domain
   by (rule Function_interpretation)
  *)
-end
 end

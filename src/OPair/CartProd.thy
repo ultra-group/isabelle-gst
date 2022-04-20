@@ -21,8 +21,8 @@ lemmas pair_setmem = funE[OF funE[OF setmem_pair_typ2]]
 
 lemma smem_pmem :
   "b : SetMem \<Longrightarrow> b : PairMem"
-  using setmem_pair[of b b] 
-  unfolding PairMem_def has_ty_def tex_def by auto
+  using setmem_pair[of b b] PairMem_def
+  unfolding  has_ty_def tex_def by auto
   
 
 subsection \<open>Cartesian product\<close>

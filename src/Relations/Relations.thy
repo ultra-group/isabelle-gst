@@ -1,38 +1,38 @@
 theory Relations
-  imports GST_Features "GZF/SetComprehension" "GZF/SetCombinators"
+  imports "../GST_Features" "../GZF/SetComprehension" "../GZF/SetCombinators"
 begin
 
-context Relation begin
+context BinRel begin
 
-thm rel_typ field_typ
+thm mkrel_typ field_typ
 thm rel ext field_iff
 
-lemmas mkrel_binrel = funE[OF depfunE[OF depfunE[OF rel_typ]]]
+lemmas mkrel_binrel = funE[OF depfunE[OF depfunE[OF mkrel_typ]]]
 lemmas field_set = funE[OF field_typ]
 
-definition domain :: "'d \<Rightarrow> 'd"
+definition domain :: "'a \<Rightarrow> 'a"
   where "domain r \<equiv> Collect (field r) (\<lambda>a. \<exists>b. app r a b)"
 
-lemma domain_typ : "domain : BinRelation \<rightarrow> Set"
+lemma domain_typ : "domain : BinRel \<rightarrow> Set"
   unfolding domain_def by (rule funI[OF collect_set[OF field_set]])
 
 lemma domain_iff : 
-  assumes "r : BinRelation"
+  assumes "r : BinRel"
   shows "x \<in> domain r \<longleftrightarrow> (\<exists>y. app r x y)"
   unfolding domain_def collect_iff[OF field_set[OF assms]]
   using field_iff assms by auto
 
-definition range :: "'d \<Rightarrow> 'd"
+definition range :: "'a \<Rightarrow> 'a"
   where "range r \<equiv> Collect (field r) (\<lambda>b. \<exists>a. app r a b)"
 
-definition converse :: "'d \<Rightarrow> 'd"
+definition converse :: "'a \<Rightarrow> 'a"
   where "converse r \<equiv> mkrel (domain r) (range r) (\<lambda>a b. app r b a)"
-
-definition FuncRel :: "'d \<Rightarrow> bool"
-  where "FuncRel \<equiv> BinRelation \<bar> (\<lambda>r. \<forall>a b c. app r a b \<and> app r a c \<longrightarrow> b = c)"
+(* 
+definition FuncRel :: "'a \<Rightarrow> bool"
+  where "FuncRel \<equiv> BinRel \<triangle> (\<lambda>r. \<forall>a b c. app r a b \<and> app r a c \<longrightarrow> b = c)"
 
 lemma funrelI : 
-  assumes "f : BinRelation" "\<forall>a b c. app f a b \<and> app f a c \<longrightarrow> b = c"
+  assumes "f : BinRel" "\<forall>a b c. app f a b \<and> app f a c \<longrightarrow> b = c"
   shows "f : FuncRel"
   unfolding FuncRel_def by (rule Soft_Types.intI[OF assms(1)], rule tyI, rule assms(2))
 
@@ -40,27 +40,21 @@ definition mk_funrel where "mk_funrel x P \<equiv> mkrel x (Repl x P) P"
 
 lemma relmem_setmem_subtyp : "BinRelMem << SetMem"
 proof (rule subtypI, unfold BinRelMem_def, drule tyE)
-  fix b assume "\<exists>r : BinRelation. \<exists>c. app r b c \<or> app r c b" 
-  then obtain r where "r : BinRelation" "\<exists>c. app r b c \<or> app r c b" by auto
+  fix b assume "\<exists>r : BinRel. \<exists>c. app r b c \<or> app r c b" 
+  then obtain r where "r : BinRel" "\<exists>c. app r b c \<or> app r c b" by auto
   hence "field r : Set" "b \<in> field r" using field_set field_iff by auto
   thus "b : SetMem" by (rule setmemI)
 qed
 
 lemmas relmem_setmem = subtypE[OF relmem_setmem_subtyp]
 
-interpretation Function_sig
-  where Function = FuncRel
-    and app = app
-    and mkfun = mk_funrel
-    and dom = domain
-  by (unfold_locales)
 
 lemma funmem_relmem_subtyp : "FunMem << BinRelMem"
 proof (rule subtypI, unfold FunMem_def BinRelMem_def, drule tyE, rule tyI)
   fix b assume "\<exists>r : FuncRel. \<exists>c. app r b c \<or> app r c b" 
   then obtain r where "r : FuncRel" "\<exists>c. app r b c \<or> app r c b"  by auto
-  moreover hence "r : BinRelation" unfolding FuncRel_def using intE1 by auto
-  ultimately show "\<exists>r : BinRelation. \<exists>c. app r b c \<or> app r c b" by auto
+  moreover hence "r : BinRel" unfolding FuncRel_def using intE1 by auto
+  ultimately show "\<exists>r : BinRel. \<exists>c. app r b c \<or> app r c b" by auto
 qed
 
 lemmas funmem_relmem = subtypE[OF funmem_relmem_subtyp]
@@ -135,7 +129,7 @@ proof (unfold_locales)
     fix x P assume xp:"x : Set" "P : FunPred x"
     hence "Repl x P : Set" "P : BinRelPred x (Repl x P)"  
       using repl_set[OF _ funpred_replpred] funpred_relpred by auto
-    thus "mk_funrel x P : BinRelation" unfolding mk_funrel_def 
+    thus "mk_funrel x P : BinRel" unfolding mk_funrel_def 
       using mkrel_binrel[OF \<open>x : Set\<close>]  by auto  
 
     show func:"\<forall>a b c. app (mk_funrel x P) a b \<and> app (mk_funrel x P) a c \<longrightarrow> b = c"
@@ -149,7 +143,7 @@ proof (unfold_locales)
   show "domain : FuncRel \<rightarrow> Set" unfolding domain_def 
   proof (rule funI, rule collect_set)
     fix f assume "f : FuncRel" 
-    hence "f : BinRelation" unfolding FuncRel_def by (rule intE1)
+    hence "f : BinRel" unfolding FuncRel_def by (rule intE1)
     thus "field f : Set" by (rule field_set)
   qed
 
@@ -174,18 +168,18 @@ proof (unfold_locales)
   show "\<forall>f : FuncRel. \<forall>g : FuncRel. (\<forall>x y. app f x y = app g x y) \<longrightarrow> f = g"
   proof (rule)+
     fix f g assume "f : FuncRel" "g : FuncRel"
-    hence "f : BinRelation" "g : BinRelation" unfolding FuncRel_def by (auto elim: intE1)
+    hence "f : BinRel" "g : BinRel" unfolding FuncRel_def by (auto elim: intE1)
     thus "\<forall>x y. app f x y = app g x y \<Longrightarrow> f = g" using ext by auto
   qed
 
   show "\<forall>f : FuncRel. \<forall>x. (x \<in> domain f) = (\<exists>y. app f x y)"
   proof (rule, rule)
     fix f x assume "f : FuncRel"
-    hence "f : BinRelation" unfolding FuncRel_def by (auto elim: intE1)
-    show "(x \<in> domain f) = (\<exists>y. app f x y)" unfolding domain_def collect_iff[OF field_set[OF \<open>f : BinRelation\<close>]]
-      using field_iff \<open>f : BinRelation\<close> by auto
+    hence "f : BinRel" unfolding FuncRel_def by (auto elim: intE1)
+    show "(x \<in> domain f) = (\<exists>y. app f x y)" unfolding domain_def collect_iff[OF field_set[OF \<open>f : BinRel\<close>]]
+      using field_iff \<open>f : BinRel\<close> by auto
   qed
-qed
+qed *)
 
 end 
 end

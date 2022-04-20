@@ -56,14 +56,14 @@ lemmas equalityD2 = subset_equal [THEN iffD1, THEN conjunct2]
 
 (*Added assumptions: \<open>A : Set\<close> \<open>B : Set\<close>*)
 lemma equalityE: 
-  assumes "A : Set" "B : Set" 
+  assumes "A : Set"  
     shows "[| A = B;  [| A \<subseteq> B; B \<subseteq> A |] ==> P |]  ==>  P"
   by (use equalityD1[OF assms] equalityD2[OF assms] in auto)
 (*WAS: by (blast dest: equalityD1 equalityD2) *)
 
 (*Added assumptions: \<open>A : Set\<close> \<open>B : Set\<close>*)
 lemma equalityCE: 
-  assumes "A : Set" "B : Set" 
+  assumes "A : Set" 
     shows "[| A = B;  [| c\<in>A; c\<in>B |] ==> P;  [| c\<notin>A; c\<notin>B |] ==> P |]  ==>  P"
 by (erule equalityE[OF assms], use assms in blast)
 (*WAS: by (erule equalityE, blast)*)

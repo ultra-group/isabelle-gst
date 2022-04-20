@@ -159,8 +159,9 @@ lemma forceM_eq :
   unfolding forceM_def
   using assms by auto
 
-definition LimFun 
-  where "LimFun \<equiv> M \<rightarrow> (M \<rightarrow> M) \<rightarrow> M \<triangle> (\<lambda>G. \<forall>u : M. \<forall>f : M \<rightarrow> M. G u f = G u (\<lambda>j. f (forceM j)))"
+
+definition LimFun
+  where "LimFun \<equiv> (M \<rightarrow> (M \<rightarrow> M) \<rightarrow> M) \<triangle> (\<lambda>G. \<forall>u : M. \<forall>f : M \<rightarrow> M. G u f = G u (\<lambda>j. f (forceM j)))"
 
 lemma limfunD1 : 
   assumes "G : LimFun"

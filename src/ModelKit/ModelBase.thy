@@ -7,19 +7,18 @@ class ModelBase = Tagging + Function +
   fixes
     Variants :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" and
     \<alpha> :: \<open>'a \<Rightarrow> 'a \<Rightarrow> bool\<close> and
-    Excluded :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-    
+    Excluded :: "'a \<Rightarrow> 'a \<Rightarrow> bool" 
   assumes 
     variants_typ1 : "Variants : (\<Pi> i : Tag. nonLimit \<rightarrow> Set \<rightarrow> SetOf (\<alpha> i))" and
-    variants_typ2 : "Variants : (\<Pi> i : Tag. Limit \<rightarrow> Function \<rightarrow> SetOf (\<alpha> i))" and
-    smem_fmem_subtyp : "SetMem << FunMem"
+    variants_typ2 : "Variants : (\<Pi> i : Tag. Limit \<rightarrow> Function \<rightarrow> SetOf (\<alpha> i))" 
+    (* smem_fmem_subtyp : "SetMem << FunMem" *)
 
 context ModelBase begin
 
 subsection \<open>Soft-typing rules for Variants\<close>
 
-lemmas smem_fmem = subtypE[OF smem_fmem_subtyp]
-lemmas ord_fmem = smem_fmem[OF ord_setmem]
+(* lemmas smem_fmem = subtypE[OF smem_fmem_subtyp] *)
+(* lemmas ord_fmem = smem_fmem[OF ord_setmem] *)
 lemmas tag_pmem = ord_pmem[OF tagD(1)]
 
 lemma variants_setofseq1 :
@@ -163,12 +162,12 @@ lemma tier_succ_set_ih :
   unfolding tier_cases(2)[OF j]
   by (rule un_set[OF tj disj_set[OF variants_succ_setseq[OF j tj]]])
 
-lemma limit_fmem : 
+(* lemma limit_fmem : 
   assumes \<mu>:"\<mu> : Limit"
   shows "predSet \<mu> : SetOf FunMem"
   using setofI[OF predset_set] ord_fmem[OF predset_mem_ord] limit_ord[OF \<mu>] by auto
-      
-lemma tier_fmem' : 
+ *)      
+(* lemma tier_fmem' : 
   assumes \<mu>:"\<mu> : Limit"
       and t\<mu> : "\<And>j. j : Ord \<Longrightarrow> j < \<mu> \<Longrightarrow> Tier j : Set"  
     shows "Tier : predSet \<mu> \<leadsto> FunMem"
@@ -178,7 +177,7 @@ proof (rule mem_funI)
     using predsetD[OF limit_ord[OF \<mu>]] by auto
   thus "Tier j : FunMem" using smem_fmem[OF set_setmem[OF t\<mu>]] by auto
 qed
-
+ *)
 lemma tier_lim_set : 
   assumes \<mu>:"\<mu> : Limit"
       and t\<mu> : "\<And>j. j : Ord \<Longrightarrow> j < \<mu> \<Longrightarrow> Tier j : Set"  
@@ -250,11 +249,11 @@ lemma tier_ex_set :
   "j : Ord \<Longrightarrow> Tier j \<ominus> i : Set"
   by (rule exset_set[OF tier_set])
  
-lemma tier_fmem : 
+(* lemma tier_fmem : 
   assumes \<mu>:"\<mu> : Limit"
     shows "Tier : (predSet \<mu>) \<leadsto> FunMem"
   using tier_fmem'[OF \<mu> tier_set] by auto
-
+ *)
 lemma tier_replfun : 
   assumes \<mu> : "\<mu> : Limit"
   shows "Tier : (predSet \<mu>) \<leadsto> Set"
@@ -286,14 +285,14 @@ lemma lam_limit_fun :
   assumes "u : Limit"
   shows "(\<lambda>i<u. F i) : Function"
     using lam_fun[OF predset_set[OF limit_ord[OF assms]]] .
-
+(* 
 lemma lam_tier_app : 
   assumes \<mu>:"\<mu> : Limit" 
       and j:"j : Ord" "j < \<mu>"
     shows "(\<lambda>j<\<mu>. Tier j) ` j = Tier j"
   using lam_app[OF predset_set[OF limit_ord[OF \<mu>]] tier_fmem[OF \<mu>]] 
         predsetI[OF \<open>j : Ord\<close> limit_ord[OF \<mu>] \<open>j < \<mu>\<close>] 
-        ord_fmem[OF j(1)] by auto
+        ord_fmem[OF j(1)] by auto *)
 
 (* lemma lam_tier_ex_eq : 
   assumes \<mu>:"\<mu> : Limit" 

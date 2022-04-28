@@ -139,11 +139,11 @@ proof (rule mem_funI)
     using tj mset_smem by auto
 qed
 
-lemma Theta_lim_fmem :
+(* lemma Theta_lim_fmem :
   assumes \<mu>:"\<mu> : Limit" and tj:"\<forall>j : Ord. j < \<mu> \<longrightarrow> \<Theta> j : mSet"
   shows "\<Theta> : (predSet \<mu>) \<leadsto> FunMem"
   by (rule mem_funI, rule smem_fmem,
-      erule mem_funE[OF Theta_lim_smem[OF \<mu> tj]])
+      erule mem_funE[OF Theta_lim_smem[OF \<mu> tj]]) *)
 
 lemma theta_tier : 
  assumes i:"j : Ord"
@@ -240,10 +240,10 @@ proof (rule mem_funI)
  thus "\<Theta> j : SetMem" using theta_tier mset_smem by auto
 qed
 
-lemma theta_fmem :
+(* lemma theta_fmem :
   assumes \<mu>:"\<mu> : Limit"
   shows "\<Theta> : (predSet \<mu>) \<leadsto> FunMem"
-  using theta_tier Theta_lim_fmem[OF \<mu>] by auto
+  using theta_tier Theta_lim_fmem[OF \<mu>] by auto *)
 
 
 lemma Theta_eq :

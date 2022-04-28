@@ -7,9 +7,10 @@ datatype variant = vari of
 
 datatype model_comp = mcomp of 
   { name : string,
-    deps : string list,
+    deps : mcomps,
     variant : variant option,
     excludes_formulas : (string * term) list }
+  and mcomps = mcomps of model_comp list
 
 fun get_mcomp_tag (mcomp {variant,...}) = case variant of
     SOME (vari v) => #tag_name v 
@@ -18,6 +19,15 @@ fun get_mcomp_tag (mcomp {variant,...}) = case variant of
 fun get_mcomp_vcases (mcomp {variant,...}) = case variant of
     SOME (vari v) => #vcases v 
   | NONE          => error "Cannot get variant cases, component has no variant"
+
+fun get_mcomp_name (mcomp {name,...}) = name
+
+fun get_mcomp_deps (mcomp {deps,...}) = 
+   (fn mcomps xs => xs) deps
+
+fun resolve_mdeps []      = []
+  | resolve_mdeps (m::ms) = resolve_mdeps (get_mcomp_deps m) 
+                          @ (m :: resolve_mdeps ms) 
 
 fun mk_variants_0 i A = 
   HOLogic.mk_Trueprop (HOLogic.mk_eq 
@@ -49,11 +59,11 @@ fun M_formula B =
 fun tag_trm name = Free (name, @{typ 'a})
 fun mdefault_trm name = Free (name ^ "_mdefault", @{typ 'a})
 
-fun get_mcomp_imports _    [] = [@{class ModelBase'}]
-  | get_mcomp_imports ctxt ms = map (get_class ctxt) ms 
+fun get_mcomp_imports [] = [@{class ModelBase'}]
+  | get_mcomp_imports ms = map (get_mcomp_name) ms 
   
-fun mk_mcomp_class (mcomp {name, deps, variant, excludes_formulas}) ctxt =
-  let val imports = get_mcomp_imports ctxt deps
+fun mk_mcomp_class (m as mcomp {name, deps, variant, excludes_formulas}) ctxt =
+  let val imports = map (get_class ctxt) (get_mcomp_imports (get_mcomp_deps m))
       val fixes = [(name ^ "_mdefault", SOME @{typ 'a}, NoSyn)]
       val mdefault_m = (name ^ "_mdefault_m", M_formula (mdefault_trm name))
   in case variant of    

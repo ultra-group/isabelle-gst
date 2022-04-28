@@ -5,6 +5,7 @@ fun list_disj ([A]) = A
   | list_disj (A::As) = HOLogic.mk_disj (A, list_disj As)
   | list_disj [] = error "list_disj: empty list!"
 
+
 (*Descend into abstractions, applying HOL \<forall> quantifiers along the way*)
 fun all_until_bool (Abs (x,T,P)) = 
     (HOLogic.all_const T $ Abs (x, T, all_until_bool P)) 

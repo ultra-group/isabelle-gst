@@ -173,7 +173,7 @@ qed
 qed
 end
 
-typedecl d0  
+(* typedecl d0  
 
 instance d0 :: OrdRec_Model  sorry
 
@@ -197,6 +197,6 @@ begin
   local_setup \<open>lift_mconsts @{thms mOrdRec_resp} (@{typ d1}) mOrdRec\<close> 
   instance 
     by (intro_classes, unfold funty_eq depfunty_eq, transfer_all,
-        tactic \<open>REPEAT_DETERM (resolve_tac @{context} @{thms mGZF_axioms mOrdinal_axioms mOrdRec_axioms} 1)\<close>)  
+        tactic \<open>REPEAT_DETERM (resolve_tac @{context} @{thms mGZF_axioms mOrdinal_axioms mOrdRec_axioms} 1)\<close>)   *)
 end
-end
+

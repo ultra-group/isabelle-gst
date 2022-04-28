@@ -3,7 +3,6 @@ theory GST_Features
 begin
 
 ML_file \<open>Tools/gst_features.ML\<close>
-
 class GZF =
   fixes 
     \<comment> \<open>Axiomatzed constants\<close> 
@@ -150,7 +149,26 @@ class Ordinal =
     lt_induct : "\<forall>P. (\<forall>i : Ord. (\<forall>j : Ord. j < i \<longrightarrow> P j) \<longrightarrow> P i) \<longrightarrow> (\<forall>a : Ord. P a)" and
     \<comment> \<open>Simple definitions\<close>
     Limit_ax : "\<forall>u. Limit u \<longleftrightarrow> (Ord \<triangle> (\<lambda>\<mu>. 0 < \<mu> \<and> (\<forall>j : Ord. j < \<mu> \<longrightarrow> succ j < \<mu>))) u" 
+
+abbreviation (in Ordinal) leq (infixl \<open>\<le>\<close> 50) where "x \<le> y \<equiv> x < succ y"
     
+class OrdRec = GZF + Ordinal + 
+  fixes 
+    predSet :: \<open>'a \<Rightarrow> 'a\<close> and 
+    supOrd :: \<open>'a \<Rightarrow> 'a\<close> and
+    OrdRec :: \<open>[['a,'a \<Rightarrow> 'a] \<Rightarrow> 'a, ['a,'a] \<Rightarrow> 'a, 'a, 'a] \<Rightarrow> 'a\<close> and
+    OrdRec_default :: \<open>'a\<close>
+  assumes 
+    predset_typ : "predSet : Ord \<rightarrow> SetOf Ord" and
+    predset_ax :  "\<forall>\<beta> : Ord. \<forall>\<alpha> : Ord. \<alpha> \<in> predSet \<beta> \<longleftrightarrow> \<alpha> < \<beta>" and
+    supord_typ :  "supOrd : SetOf Ord \<rightarrow> Ord" and
+    supord_ax :  "\<forall>x : SetOf Ord. \<forall>\<alpha>. \<alpha> \<in> x \<longrightarrow> \<alpha> \<le> supOrd x" and
+    ordrec_0 :  "\<forall>G. \<forall>F. \<forall>A. OrdRec G F A 0 = A" and
+    ordrec_succ_ax :  "\<forall>G. \<forall>F. \<forall>A. \<forall>b : Ord. 
+       OrdRec G F A (succ b) = F (succ b) (OrdRec G F A b)" and
+    ordrec_lim_ax :  "\<forall>G. \<forall>F. \<forall>A. \<forall>\<mu> : Limit. 
+       OrdRec G F A \<mu> = G \<mu> (\<lambda>j. if j : Ord \<and> j < \<mu> then OrdRec G F A j else OrdRec_default)"                    
+
 class Nat =
   fixes 
     \<comment> \<open>Axiomatized constants\<close>

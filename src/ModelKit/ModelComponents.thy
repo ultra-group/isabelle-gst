@@ -37,7 +37,7 @@ ML \<open>val nat_model = mcomp
       alpha_typ = @{term \<open>Ord\<close>}})}\<close> *)
 
 (*Probably don't need?*)
-ML_file \<open>Tools/connection_locales.ML\<close>
+(* ML_file \<open>Tools/connection_locales.ML\<close> *)
 
 text \<open>Generating type-classes for models components,
       and locales for connecting model components to domains\<close>

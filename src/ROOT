@@ -5,6 +5,8 @@ session GST = "HOL-Eisbach" +
   options 
     [browser_info    = true, 
      document_output = "../html/"]
+  sessions
+    ZFC_in_HOL
   directories
     Functions
     GZF

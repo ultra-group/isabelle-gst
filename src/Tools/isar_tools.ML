@@ -5,6 +5,12 @@ fun get_thy ctxt = Proof_Context.theory_of ctxt
 fun get_ctxt thy = Proof_Context.init_global thy
 
 (*Defines \<open>name \<equiv> trm\<close> in lthy*)
+fun make_defn_all name trm mx lthy = let
+  val binding_const = (Binding.name name, mx)
+  val binding_fact = (Binding.name (name ^ "_def"), [])
+  val arg = (binding_const, (binding_fact, trm)) 
+  in Local_Theory.define arg lthy end
+
 fun make_defn_trm name trm mx lthy = let
   val binding_const = (Binding.name name, mx)
   val binding_fact = (Binding.name (name ^ "_def"), [])
@@ -17,6 +23,11 @@ fun make_defn name trm mx = snd o make_defn_trm name trm mx
 fun make_defns_trms lthy = 
   List.foldl (fn ((iden, trm, mx), (ts,lthy)) => 
       let val (trm, lthy') = make_defn_trm iden trm mx lthy
+      in (trm :: ts, lthy') end) ([],lthy)
+
+fun make_defns_all lthy = 
+  List.foldl (fn ((iden, trm, mx), (ts,lthy)) => 
+      let val (trm, lthy') = make_defn_all iden trm mx lthy
       in (trm :: ts, lthy') end) ([],lthy)
 
 (*Defines a list of triples of (name,trm,mx)*)

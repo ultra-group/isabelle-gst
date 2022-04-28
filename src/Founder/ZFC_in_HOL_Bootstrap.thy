@@ -2,9 +2,12 @@ section \<open>Bootstrap in V - Interpreting GZF, Ord, OrdRec in Paulson's ZFC i
 
 theory ZFC_in_HOL_Bootstrap
   imports 
-    "$ISABELLE_HOME/src/HOL/ZFC_in_HOL/ZFC_Typeclasses" 
-    "../GST_Features" "../remove_syntax"
+    "ZFC_in_HOL.ZFC_Typeclasses" 
+    "../GST_Features"
   begin
+thy_deps
+text \<open>We show that V instantiates the GZF, Ordinal, and OrdRec typeclasses\<close>
+term \<open>a \<in> x\<close>
 
 text \<open>Bootstrapping GZF typeclass\<close>
 instantiation V :: GZF 
@@ -14,7 +17,7 @@ definition Set_V :: \<open>V \<Rightarrow> bool\<close>
 definition Mem_V :: \<open>V \<Rightarrow> V \<Rightarrow> bool\<close>
   where "Mem_V b x \<equiv> Set.member b (elts x)"
 definition Union_V :: \<open>V \<Rightarrow> V\<close>
-  where "Union_V x \<equiv> ZFC_in_HOL.set (Complete_Lattices.Union (elts ` (elts x)))"
+  where "Union_V x \<equiv> ZFC_in_HOL.set (Complete_Lattices.Union (Set.image elts (elts x)))"
 definition Pow_V :: \<open>V \<Rightarrow> V\<close>
   where "Pow_V \<equiv> VPow"
 definition Emp_V :: \<open>V\<close>
@@ -25,7 +28,7 @@ definition Inf_V :: \<open>V\<close>
   where "Inf_V \<equiv> ZFC_in_HOL.\<omega>"
 definition Repl_V :: \<open>[V, [V,V] \<Rightarrow> bool] \<Rightarrow> V\<close>
   where "Repl_V x P \<equiv> ZFC_in_HOL.set 
-      ((\<lambda>a. (THE b. P a b)) ` {a . Set.member a (elts x) \<and> (\<exists>b. P a b)})"
+    (Set.image (\<lambda>a. (THE b. P a b)) (Set.Collect (\<lambda>a. Set.member a (elts x) \<and> (\<exists>b. P a b))))"
 definition Subset_V :: \<open>[V,V] \<Rightarrow> bool\<close>
   where "Subset_V x y \<equiv> less_eq x y"
 definition SetMem_V :: \<open>V \<Rightarrow> bool\<close>
@@ -68,7 +71,6 @@ next
  thus "ReplPred x P" unfolding ReplPred_V_def by auto
 qed
 end
-
 
 text \<open>Bootstrapping Ordinal typeclass\<close>
 instantiation V :: Ordinal 
@@ -231,4 +233,18 @@ instance proof (intro_classes,
  qed
 qed
 end
+
+text \<open>Removing ZFC_in_HOL names from namespace,
+      and making names print nicely in output panel.\<close>
+(*Hide HOL constant \<open>set\<close> so we can use it as a tag in model building*)
+(* and \<open>dom\<close> so we can use it in Function/Relation locales*)
+hide_const 
+ Union Pow Inf Nat Pair dom
+
+hide_const 
+ ZFC_in_HOL.Ord
+ ZFC_in_HOL.Limit
+ ZFC_in_HOL.succ wo_rel.succ
+ 
+
 end

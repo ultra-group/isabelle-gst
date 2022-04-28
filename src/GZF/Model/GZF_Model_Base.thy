@@ -2,10 +2,12 @@ theory GZF_Model_Base
   imports "../../ModelKit/ModelComponents"
 begin
 
+hide_const set ZFC_in_HOL.set
+
 context ModelBase begin
 ML \<open>val set_model = mcomp
  { name = "GZF_Model", 
-   deps = [], 
+   deps = mcomps [], 
    variant = SOME (vari 
     { tag_name = "set",
       vcases = 
@@ -14,14 +16,14 @@ ML \<open>val set_model = mcomp
          @{term "(\<lambda>_ _. \<emptyset>) :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"}),
        alpha_typ = @{term "Set"}
     }),
-  excludes_formulas = [("not_set_excluded_mset", @{prop \<open>\<not> Excluded set <set, x'>\<close>})]
+  excludes_formulas =
+    [("not_set_excluded_mset", @{prop \<open>\<not> Excluded set <set, x'>\<close>})]
  }\<close>
 end
 
 local_setup \<open>snd o (mk_mcomp_class set_model)\<close>
 
 context GZF_Model begin
-
 definition mSet :: \<open>'a \<Rightarrow> bool\<close>
   where "mSet \<equiv> M \<triangle> (\<^enum> set)"
 

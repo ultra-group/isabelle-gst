@@ -9,6 +9,7 @@ thm zero_typ succ_typ omega_typ zero_ax succ_ax omega_ax Limit_ax
 (* - Axioms specifying that \<open><\<close> is a well-order on the ordinals:*)  
 thm lt_trans lt_notsym lt_linear lt_induct
 
+lemmas zero_ord = zero_typ
 lemmas succ_ord = funE[OF succ_typ]
 
 subsection \<open>Initial Finite Ordinals\<close>
@@ -89,7 +90,6 @@ lemma succ_nonzero :
 
 subsection \<open>leq - Less Than or Equal To\<close>
 
-abbreviation leq (infixl \<open>\<le>\<close> 50) where "x \<le> y \<equiv> x < succ y"
 lemma leq_iff : 
   assumes "i : Ord" "j : Ord"
     shows "i \<le> j \<longleftrightarrow> i < j \<or> i = j"
@@ -205,6 +205,10 @@ lemma leq_succ_iff :
   unfolding leq_iff[OF \<open>i : Ord\<close> succ_ord[OF \<open>j : Ord\<close>]] 
   by rule
 
+lemma succ_leq : 
+  assumes "i : Ord" 
+  shows "i \<le> succ i"
+  using succ_lt leqI1 assms succ_ord by auto
 
 
 subsection \<open>Transitivity Rules\<close>
@@ -292,8 +296,6 @@ lemma limit_lt_succ :
     shows "succ \<beta> < \<mu>"
   using assms unfolding Limit_def by unfold_typs
   
-
-
 lemma limit_succE : 
   assumes i:"i : Ord" and succ_i:"succ i : Limit"
   shows "P"
@@ -559,5 +561,62 @@ lemma least_default :
   unfolding least_def tex_def
   by (rule the_def_default, auto)
 
+
+subsection \<open>Ordinal case operator\<close>
+
+definition caseof_ord :: \<open>['a, 'a \<Rightarrow> 'a \<Rightarrow> 'a, 'a \<Rightarrow> 'a \<Rightarrow> 'a] \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a)\<close>
+  where "caseof_ord z s l i b \<equiv>
+    if i = 0 then z else 
+      if (\<exists>j : Ord. i = succ j) then s i b else 
+        if i : Limit then l i b else Ordinal_default"
+        
+lemma case_ord_zero :
+  "caseof_ord b f g 0 x = b"
+  unfolding caseof_ord_def by auto
+
+lemma case_ord_succ :
+  assumes j:"j : Ord"
+  shows "caseof_ord b f g (succ j) x = f (succ j) x"
+  unfolding caseof_ord_def 
+  using succ_nonzero[OF j] not_succ_limit[OF j] j by auto
+
+lemma case_ord_lim :
+  assumes u:"u : Limit"
+  shows "caseof_ord b f g u x = g u x"
+  unfolding caseof_ord_def 
+  using limit_nonzero u not_succ_limit by auto
+
+lemma case_ordE :
+  assumes i: "i : Ord" 
+      and c: "c = caseof_ord b f g i x"    
+  obtains (zero) "c = b"
+        | (succ) "c = f i x"
+        | (lim)  "c = g i x"
+  using ord_cases[OF i] case_ord_zero case_ord_succ case_ord_lim
+  unfolding c by metis
+
 end
+
+ML \<open>fun mk_ord_thm z _ 0 = z
+      | mk_ord_thm z s n = s OF [mk_ord_thm z s (n-1)]\<close>
+
+ML \<open>fun n_ord_thm 0 = @{thm zero_ord}
+      | n_ord_thm n = @{thm succ_ord} OF [n_ord_thm (n-1)]\<close>
+
+ML \<open>fun leq_thm (i,j) =
+      if j < i then error "j<i" else
+      if i = j 
+      then @{thm leq_refl} OF [n_ord_thm i]
+      else if i+1 = j 
+        then @{thm succ_leq} OF [n_ord_thm i]
+        else @{thm leq_trans2} OF [n_ord_thm i, n_ord_thm (i+1), n_ord_thm j, 
+                  leq_thm (i,i+1), leq_thm (i+1,j)]\<close>
+
+lemmas if_P_trans = HOL.trans[OF if_not_P]
+
+ML \<open>fun neq_thm (i,j) = not_sym OF [@{thm lt_neq} OF [n_ord_thm j, n_ord_thm i, leq_thm (j,i-1)]] \<close>
+ML \<open>fun if_thm' _ 0 = @{thm if_P} OF [@{thm refl}]
+      | if_thm' i k = @{thm if_P_trans} OF [neq_thm (i,i-k), if_thm' i (k-1)]\<close>
+ML \<open>fun if_thm i = if_thm' i i\<close>
+
 end

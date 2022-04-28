@@ -1,6 +1,43 @@
 theory remove_syntax
-imports Main begin
-(*Comments for theories*)
+imports "$ISABELLE_HOME/src/HOL/ZFC_in_HOL/ZFC_Typeclasses" 
+begin
+
+(*Don't actually need to remove any of these..
+  Consider using & for intersection types?*)
+no_notation (ASCII)
+  Not  ("~ _" [40] 40) and
+  conj  (infixr "&" 35) and
+  disj  (infixr "|" 30) and
+  implies  (infixr "-->" 25) and
+  not_equal  (infix "~=" 50)
+no_notation FuncSet.funcset (infixr "\<rightarrow>" 60)
+
+no_translations
+  "\<Pi> x\<in>A. B" \<rightleftharpoons> "CONST Pi A (\<lambda>x. B)"
+  "\<lambda>x\<in>A. f" \<rightleftharpoons> "CONST restrict (\<lambda>x. f) A"
+no_syntax
+  "_Pi" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3\<Pi> _\<in>_./ _)"   10)
+  "_lam" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
+(*Hiding HOL set theory notation*)
+no_notation Set.member ("'(\<in>')") and 
+            Set.member ("(_/ \<in> _)" [51, 51] 50) and
+            Set.not_member  ("'(\<notin>')") and
+            Set.not_member  (infixl \<open>\<notin>\<close> 50) and
+            Set.not_member  ("(_/ \<notin> _)" [51, 51] 50) and
+            subset_eq  ("'(\<subseteq>')") and
+            subset_eq  ("(_/ \<subseteq> _)" [51, 51] 50) and
+            Union ("\<Union>") and Inter ("\<Inter>") and
+            union (infixl "\<union>" 65) and inter (infixl "\<inter>" 70) and
+            image (infixr "`" 90)
+no_notation (ASCII)
+  Set.member  ("'(:')") and
+  Set.member  ("(_/ : _)" [51, 51] 50) and
+  Set.not_member  ("'(~:')") and
+  Set.not_member  ("(_/ ~: _)" [51, 51] 50) and
+  less_eq  ("'(<=')") and
+  less_eq  ("(_/ <= _)" [51, 51] 50) and
+  union (infixl "Un" 65) and
+  inter (infixl "Int" 70)
 
 (*Hiding syntax and translations for HOL-set-bounded quantification*)
 no_translations
@@ -23,49 +60,36 @@ no_syntax
   "_Finset" :: "args \<Rightarrow> 'a set"    ("{(_)}")
 
 no_translations
-  "\<Inter>x\<in>A. f" \<rightleftharpoons> "CONST Inter ((\<lambda>x. f) ` A)"
-  "\<Union>x\<in>A. f" \<rightleftharpoons> "CONST Union ((\<lambda>x. f) ` A)"
+  "\<Inter>x\<in>A. f" \<rightleftharpoons> "CONST Inter (Set.image (\<lambda>x. f) A)"
+  "\<Union>x\<in>A. f" \<rightleftharpoons> "CONST Union (Set.image (\<lambda>x. f) A)"
   "\<Union>i<n. A" \<rightleftharpoons> "\<Union>i\<in>{..<n}. A"
 no_syntax
   "_INTER"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> 'b set"  ("(3\<Inter>_\<in>_./ _)" [0, 0, 10] 10)
   "_UNION"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> 'b set"  ("(3\<Union>_\<in>_./ _)" [0, 0, 10] 10)
   "_UNION_less" :: "'a => 'a => 'b set => 'b set"       ("(3\<Union>_<_./ _)" [0, 0, 10] 10)
 
-(*Hiding HOL set theory notation*)
-no_notation Set.member ("'(\<in>')") and 
-            Set.member ("(_/ \<in> _)" [51, 51] 50) and
-            Set.not_member  ("'(\<notin>')") and
-            Set.not_member  (infixl \<open>\<notin>\<close> 50) and
-            Set.not_member  ("(_/ \<notin> _)" [51, 51] 50) and
-            subset_eq  ("'(\<subseteq>')") and
-            subset_eq  ("(_/ \<subseteq> _)" [51, 51] 50) and
-            Union ("\<Union>") and Inter ("\<Inter>") and
-            union (infixl "\<union>" 65) and inter (infixl "\<inter>" 70) and
-            image (infixr "`" 90)
-
-
-
-
 
 no_notation Product_Type.Times (infixr "\<times>" 80)
-
-
+no_translations
+  "<x, y, z>"    \<rightleftharpoons> "<x, <y, z>>"
+  "<x, y>"       \<rightleftharpoons> "CONST vpair x y"
+  "<x, y, z>"    \<rightleftharpoons> "<x, <y, z>>"
+  "\<lambda><x,y,zs>. b" \<rightleftharpoons> "CONST vsplit(\<lambda>x <y,zs>. b)"
+  "\<lambda><x,y>. b"    \<rightleftharpoons> "CONST vsplit(\<lambda>x y. b)"
+no_syntax (ASCII)
+  "_Tuple"    :: "[V, Vs] \<Rightarrow> V"              ("<(_,/ _)>")
+  "_hpattern" :: "[pttrn, patterns] \<Rightarrow> pttrn"   ("<_,/ _>")
+no_syntax
+  ""          :: "V \<Rightarrow> Vs"                    ("_")
+  "_Enum"     :: "[V, Vs] \<Rightarrow> Vs"             ("_,/ _")
+  "_Tuple"    :: "[V, Vs] \<Rightarrow> V"              ("\<langle>(_,/ _)\<rangle>")
+  "_hpattern" :: "[pttrn, patterns] \<Rightarrow> pttrn"   ("\<langle>_,/ _\<rangle>")
 
 (*Switch to using setminus character*)
 no_notation 
-  Groups.minus (infixl "-" 65) and 
-  Groups.zero ("0") and 
-  Groups.one_class.one ("1") and
-  Groups.times (infixl "*" 70)
-(*Removing HOL ASCII notation for logical connectives.
-  Currently, we only do this to warnings about parsing
-  set comprehensions: { _ | _ }*)
-no_notation (ASCII)
-  Not  ("~ _" [40] 40) and
-  conj  (infixr "&" 35) and
-  disj  (infixr "|" 30) and
-  implies  (infixr "-->" 25) and
-  not_equal  (infix "~=" 50)
+  Groups.minus (infixl "-" 65) and (*for set difference - perhaps use a different symbol?*)
+  Groups.zero ("0") and (*for the ordinal zero*)
+  Groups.times (infixl "*" 70) (*for product soft-types*)
 
 (*Removing syntax from Orderings.thy*)
 no_translations
@@ -81,36 +105,7 @@ no_notation
   less  ("(_/ < _)"  [51, 51] 50)
 no_notation
   Orderings.ord_class.greater (\<open><\<close> 10)
-
-
-
-no_notation (ASCII)
-  Set.member  ("'(:')") and
-  Set.member  ("(_/ : _)" [51, 51] 50) and
-  Set.not_member  ("'(~:')") and
-  Set.not_member  ("(_/ ~: _)" [51, 51] 50) and
-  less_eq  ("'(<=')") and
-  less_eq  ("(_/ <= _)" [51, 51] 50) and
-  union (infixl "Un" 65) and
-  inter (infixl "Int" 70)
-
-
-(*Removing list syntax so that we can have f[x] := image(f,x) 
-  Use backquote, Z language unicode*)
-no_translations
-  "[x, xs]" == "x#[xs]"
-  "[x]" == "x#[]"
-no_syntax
-  "_list" :: "args => 'a list" ("[(_)]")
-
-(*Hide HOL constant \<open>set\<close> so we can use it as a tag in model building*)
-hide_const set
-hide_const Union Pow Inf 
-hide_const Nat Pair
-
-(*Hide HOL constant \<open>dom\<close> so we can use it in Function/Relation locales*)
-hide_const dom
-
-
+term \<open>x <o y\<close>
+no_notation ordLess2 (infix "<o" 50)
 
 end

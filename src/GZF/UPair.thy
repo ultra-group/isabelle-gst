@@ -8,8 +8,23 @@ subsection \<open>Unordered pairs; defined by replacement over \<P> (\<P> \<empt
 
 abbreviation "\<phi> x y a b \<equiv> (a = \<emptyset> \<and> b = x) \<or> (a = \<P> \<emptyset> \<and> b = y)"
 
-definition upair :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "upair x y \<equiv> Repl (\<P> (\<P> \<emptyset>)) (\<phi> x y)"
+definition upair' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "upair' x y \<equiv> Repl (\<P> (\<P> \<emptyset>)) (\<phi> x y)"
+
+definition upair :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close> where
+  "upair x y \<equiv> if \<not> x : SetMem then 
+                  if \<not> GZF_default : Set 
+                  then GZF_default else x 
+               else
+                if \<not> y : SetMem then
+                  if \<not> GZF_default : Set 
+                  then GZF_default else y
+                else upair' x y"
+
+lemma upair_eq : 
+  assumes "x : SetMem" "y : SetMem"
+    shows "upair x y = upair' x y"
+  unfolding upair_def using assms by auto
 
 definition sng :: "'a \<Rightarrow> 'a" where
   "sng x \<equiv> upair x x"
@@ -45,7 +60,7 @@ lemma upair_typ : "upair : SetMem \<rightarrow> SetMem \<rightarrow> Set"
 proof (rule funI[THEN funI])
   fix a b :: 'a assume ab: "a : SetMem" "b : SetMem" 
   have "\<P> (\<P> \<emptyset>) : Set" by (rule pow_set[OF pow_set[OF emp_set]])
-  thus "{a, b} : Set" unfolding upair_def 
+  thus "{a, b} : Set" unfolding upair_eq[OF ab] upair'_def 
     using repl_set[OF _ phi_replpred[OF ab]] by auto
 qed
 
@@ -92,7 +107,7 @@ lemma upair_iff :
   shows "b \<in> upair x y \<longleftrightarrow> (b = x \<or> b = y)"
 proof - 
   have pp_emp_set : "\<P> \<P> \<emptyset> : Set" by (rule pow_set[OF pow_set[OF emp_set]])
-  show ?thesis unfolding upair_def 
+  show ?thesis unfolding upair_eq[OF assms] upair'_def
   proof (rule, erule replaceE[OF pp_emp_set phi_replpred[OF assms pp_emp_set]])
     fix a assume "a \<in> (\<P> \<P> \<emptyset>)" and "\<phi> x y a b"
     thus "(b = x \<or> b = y)" using pow_pow_emp_iff by auto
@@ -131,10 +146,40 @@ lemma upairI2 :
   assumes "a : SetMem" "b : SetMem"
   shows "b \<in> {a, b}" using upair_iff[OF assms] by simp
 
-lemma upairE : assumes "b : SetMem" "c : SetMem" 
+lemma upairE : 
+  assumes "b : SetMem" "c : SetMem" 
   shows "\<lbrakk> a \<in> {b, c} ; a=b \<Longrightarrow> P ; a=c \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P" 
   by (simp add: upair_iff[OF assms], blast)
 
+lemma upair'_set : 
+  assumes "b : SetMem" "c : SetMem"
+  shows "upair' b c : Set"
+  using upair_set[OF assms] 
+  unfolding upair_eq[OF assms] .
+
+lemma not_setmem_not_set :
+  "\<not> x : SetMem \<Longrightarrow> \<not> x : Set"
+  using set_setmem by auto
+
+lemma upair_set_setmem : 
+  assumes "{b,c} : Set"
+    shows "b : SetMem \<and> c : SetMem"
+proof (rule ccontr, auto)
+  assume b:"\<not> b : SetMem"
+  hence "\<not> {b, c} : Set"
+    using not_setmem_not_set[OF b]
+    unfolding upair_def by auto
+  thus "False" using assms ..
+next
+  assume c:"\<not> c : SetMem"
+  hence "\<not> {b, c} : Set"
+    using not_setmem_not_set
+    unfolding upair_def by auto
+  thus "False" using assms ..
+qed
+
+lemmas upair_smem1 = conjunct1[OF upair_set_setmem]
+   and upair_smem2 = conjunct2[OF upair_set_setmem]
 
 subsection \<open>Rules for singleton sets\<close>
 
@@ -204,4 +249,4 @@ next
 qed
 
 end
-end
+end 

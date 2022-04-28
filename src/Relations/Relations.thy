@@ -10,6 +10,18 @@ thm rel ext field_iff
 lemmas mkrel_binrel = funE[OF depfunE[OF depfunE[OF mkrel_typ]]]
 lemmas field_set = funE[OF field_typ]
 
+lemma brelmemI1 :
+  assumes "r : BinRel" "app r a b"
+  shows "a : BinRelMem"
+  using assms 
+  unfolding BinRelMem_def has_ty_def tex_def by auto
+  
+lemma brelmemI2 :
+  assumes "r : BinRel" "app r a b"
+  shows "b : BinRelMem"
+  using assms 
+  unfolding BinRelMem_def has_ty_def tex_def by auto
+  
 definition domain :: "'a \<Rightarrow> 'a"
   where "domain r \<equiv> Collect (field r) (\<lambda>a. \<exists>b. app r a b)"
 
@@ -27,16 +39,28 @@ definition range :: "'a \<Rightarrow> 'a"
 
 definition converse :: "'a \<Rightarrow> 'a"
   where "converse r \<equiv> mkrel (domain r) (range r) (\<lambda>a b. app r b a)"
-(* 
+
 definition FuncRel :: "'a \<Rightarrow> bool"
   where "FuncRel \<equiv> BinRel \<triangle> (\<lambda>r. \<forall>a b c. app r a b \<and> app r a c \<longrightarrow> b = c)"
+
+definition FuncRelPred 
+  where "FuncRelPred x \<equiv> ReplPred x \<triangle> (\<lambda>P. BinRelPred x (Repl x P) P)"
+
+definition mk_funrel where "mk_funrel x P \<equiv> mkrel x (Repl x P) P"
+
+interpretation Function
+  where Function = FuncRel
+    and mkfun = mk_funrel
+    and dom = domain
+    and ran = range
+    and FunMem = BinRelMem
+    and FunPred = FuncRelPred
+    and Function_default = BinRelation_default oops
 
 lemma funrelI : 
   assumes "f : BinRel" "\<forall>a b c. app f a b \<and> app f a c \<longrightarrow> b = c"
   shows "f : FuncRel"
   unfolding FuncRel_def by (rule Soft_Types.intI[OF assms(1)], rule tyI, rule assms(2))
-
-definition mk_funrel where "mk_funrel x P \<equiv> mkrel x (Repl x P) P"
 
 lemma relmem_setmem_subtyp : "BinRelMem << SetMem"
 proof (rule subtypI, unfold BinRelMem_def, drule tyE)
@@ -48,95 +72,51 @@ qed
 
 lemmas relmem_setmem = subtypE[OF relmem_setmem_subtyp]
 
+lemma frelpred_replpred :
+  assumes "P : FuncRelPred x"
+  shows "P : ReplPred x" 
+   using assms unfolding FuncRelPred_def 
+   by unfold_typs
 
-lemma funmem_relmem_subtyp : "FunMem << BinRelMem"
-proof (rule subtypI, unfold FunMem_def BinRelMem_def, drule tyE, rule tyI)
-  fix b assume "\<exists>r : FuncRel. \<exists>c. app r b c \<or> app r c b" 
-  then obtain r where "r : FuncRel" "\<exists>c. app r b c \<or> app r c b"  by auto
-  moreover hence "r : BinRel" unfolding FuncRel_def using intE1 by auto
-  ultimately show "\<exists>r : BinRel. \<exists>c. app r b c \<or> app r c b" by auto
-qed
-
-lemmas funmem_relmem = subtypE[OF funmem_relmem_subtyp]
-lemmas funmem_setmem = subtypE[OF subtyp_trans[OF funmem_relmem_subtyp relmem_setmem_subtyp]]
-
-lemma funpred_replpred :
-  assumes "P : FunPred x"
-  shows "P : ReplPred x"
-proof (unfold ReplPred_def tuniq_def, rule tyI, rule, rule, rule)
-  fix a assume "a \<in> x" 
-  thus "\<exists>\<^sub>\<le>\<^sub>1 x. x : SetMem \<and> P a x" 
-    using \<open>P : FunPred x\<close> unfolding Uniq_def FunPred_def has_ty_def by auto
-  show "\<forall>b. P a b \<longrightarrow> b : SetMem" 
-  proof (rule, rule, rule funmem_setmem)
-    fix b assume "P a b"
-    thus "b : FunMem" using \<open>a \<in> x\<close> \<open>P : FunPred x\<close> unfolding FunPred_def has_ty_def by auto
-  qed
-qed
-
-lemma funpred_repl_set : 
-  assumes "x : Set" "P : FunPred x" 
-  shows "Repl x P : Set"
-  using repl_set[OF \<open>x : Set\<close> funpred_replpred[OF \<open>P : FunPred x\<close>]] by auto
-thm FunPred_def
-
-lemma funpred_relpred :
-  assumes "x : Set" "P : FunPred x" 
-  shows "P : BinRelPred x (Repl x P)" unfolding BinRelPred_def
-proof (rule tyI, rule, rule, rule, rule, rule, rule)
-  fix a b assume "a \<in> x" "b \<in> Repl x P" "P a b"
-  hence "a : FunMem" "b : FunMem" using \<open>P : FunPred x\<close> unfolding FunPred_def has_ty_def by auto
-  thus "a : BinRelMem" "b : BinRelMem" using funmem_relmem by auto
-qed
+lemma frelpred_brelpred :
+  assumes "P : FuncRelPred x"
+  shows "P : BinRelPred x (Repl x P)" 
+   using assms unfolding FuncRelPred_def 
+   by unfold_typs
 
 lemma mkfun_rel_iff :
-  assumes "x : Set" "P : FunPred x" 
+  assumes x : "x : Set" and P : "P : FuncRelPred x" 
   shows "\<forall>a b. app (mk_funrel x P) a b \<longleftrightarrow> (a \<in> x \<and> b \<in> Repl x P \<and> P a b)"
 proof -
   have "Repl x P : Set" "P : BinRelPred x (Repl x P)"  
-    using repl_set[OF _ funpred_replpred] funpred_relpred assms by auto
+    using repl_set[OF x frelpred_replpred[OF P]] frelpred_brelpred[OF P] by auto
   thus "\<forall>a b. app (mk_funrel x P) a b \<longleftrightarrow> (a \<in> x \<and> b \<in> Repl x P \<and> P a b)"
     using rel \<open>x : Set\<close> unfolding mk_funrel_def tall_def by auto
 qed
 
-(*If we want to use interpretations in other interfaces, we need to prove locale theorems
-  rather than form interpretations.
-    For example, the Relation interface can be used to interpret the Function interface.
-    The SetRel interface can interpret the Relation interface, and should therefore
-    also be able to interpret the Function interface.
-    - Suppose we do 'interpretation Function where ...' in the context of the Relation interface,
-      and we then interpret the Relation interface in the SetRel context.
-    - The constants, definitions and theorems of the Function interface are NOT available
-      in this context. Interpreting the Function interface here is hard, 
-      because we the 'interpretation' command leaves no trace of the fact that the Function
-      interface can be interpreted in the Relation interface.
-    - However, if we prove the "locale theorem":
-        "Function Set Mem Emp Union Subset Pow Succ Inf Repl FuncRel app mk_funrel domain"
-      in the Relation context, then when after interpreting the Relation interface in the SetRel context,
-      we have this theorem ready for us to automatically interpret the Function interface.
-    - Unfortunately, this requires us to do the work of explicitly filling in the parameters of
-      the locale, usually performed by the Isar locale interpretation machinery. 
-      This list also contains the parameters of all of the interfaces dependencies.
-    - It should be relatively easy to write code to automate the construction of the 
-      statement of the "locale theorem", and also write code that forms the interpretation of
-      interfaces when fed these theorems. *)
-
-(*Proving that any functional relations can interpret the Function interface!*)
-lemma Function_interpretation: "Function Set Mem Emp Union Subset Pow Succ Inf Repl FuncRel app mk_funrel domain"
+theorem BinRel_Function : 
+  "class.Function Set (\<in>) Union Pow \<emptyset> Succ Inf \<R> (\<subseteq>) SetMem SetOf ReplPred 
+      app FuncRel mk_funrel domain range BinRelMem FuncRelPred"
 proof (unfold_locales)
-  show "mk_funrel : (\<Pi> x:Set. FunPred x \<rightarrow> FuncRel)" 
+  show "mk_funrel : (\<Pi> x:Set. FuncRelPred x \<rightarrow> FuncRel)" 
   proof (rule depfunI, rule funI, rule funrelI)
-    fix x P assume xp:"x : Set" "P : FunPred x"
+    fix x P assume xp:"x : Set" "P : FuncRelPred x"
     hence "Repl x P : Set" "P : BinRelPred x (Repl x P)"  
-      using repl_set[OF _ funpred_replpred] funpred_relpred by auto
-    thus "mk_funrel x P : BinRel" unfolding mk_funrel_def 
+      using repl_set[OF xp(1) frelpred_replpred] frelpred_brelpred by auto
+    thus br:"mk_funrel x P : BinRel" unfolding mk_funrel_def 
       using mkrel_binrel[OF \<open>x : Set\<close>]  by auto  
 
     show func:"\<forall>a b c. app (mk_funrel x P) a b \<and> app (mk_funrel x P) a c \<longrightarrow> b = c"
     proof (rule)+
-      fix a b c assume "app (mk_funrel x P) a b \<and> app (mk_funrel x P) a c" 
-      hence "P a b" "P a c" "a \<in> x" using mkfun_rel_iff[OF xp] by auto
-      thus "b = c" using \<open>P : FunPred x\<close> unfolding FunPred_def has_ty_def by auto
+      fix a b c assume 
+        "app (mk_funrel x P) a b \<and> app (mk_funrel x P) a c"
+      hence "P a b" "P a c" "a \<in> x" "b : BinRelMem" "c : BinRelMem" 
+        using mkfun_rel_iff[OF xp] brelmemI1[OF br] brelmemI2[OF br]  by auto
+      moreover hence "b : SetMem" "c : SetMem"
+        using relmem_setmem by auto
+      ultimately show "b = c" 
+        using frelpred_replpred[OF \<open>P : FuncRelPred x\<close>]
+        unfolding ReplPred_def has_ty_def tuniq_def Uniq_def by auto
     qed
   qed
 
@@ -179,7 +159,10 @@ proof (unfold_locales)
     show "(x \<in> domain f) = (\<exists>y. app f x y)" unfolding domain_def collect_iff[OF field_set[OF \<open>f : BinRel\<close>]]
       using field_iff \<open>f : BinRel\<close> by auto
   qed
-qed *)
+qed 
+
+(*Proving that any functional relations can interpret the Function interface!*)
+ sorry
 
 end 
 end

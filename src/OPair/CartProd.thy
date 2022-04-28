@@ -7,9 +7,9 @@ text \<open>
   We stay abstract and define a new class that imports a 
   representation of sets, and pairs. 
   
-  An extra axiom is needed so that we can construct pairs out of the
-  elements of sets, and construct sets with pairs as members.\<close>
-
+  Two extra axioms are needed so that we can construct pairs out of SetMems,
+  and to allow pairs to be members of sets.\<close>
+(*Change to SetMem >> PairMem and Pair >> SetMem ? *)
 class CartProd = GZF + OPair +
   assumes setmem_pair_typ1 : "pair : SetMem \<rightarrow> SetMem \<rightarrow> Pair"
       and setmem_pair_typ2 : "pair : PairMem \<rightarrow> PairMem \<rightarrow> SetMem"  

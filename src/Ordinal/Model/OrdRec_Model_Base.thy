@@ -5,12 +5,25 @@ theory OrdRec_Model_Base
 begin
 
 
-class OrdRec_Model = GZF_Model + Ordinal_Model +
-  fixes 
-    OrdRec_Model_mdefault :: 'a
-  assumes 
-    OrdRec_Model_mdefault_m : "OrdRec_Model_mdefault : M" and 
-    not_excluded_set_mord : "\<not> Excluded set <ord, j'>"
+(*Formula \<open>ex_ordrec\<close> needs to be defined in context of both GZF_Model and Ordinal_Model
+  Need a better workaround.*)
+class foo = GZF_Model + Ordinal_Model 
+begin
+(*Constrains \<open>Excluded\<close> to allow sets of ordinals to be formed in model building process*)
+ML \<open>val ex_ordrec = @{prop \<open>\<not> Excluded set <ord, j'>\<close>}\<close>
+end
+
+context ModelBase begin
+ML \<open>val ordrec_model = mcomp
+ { name = "OrdRec_Model", 
+   deps = mcomps [set_model, ord_model], 
+   variant = NONE,
+  excludes_formulas = 
+    [("not_excluded_set_mord", ex_ordrec)]
+ }\<close>
+end
+
+local_setup \<open>snd o mk_mcomp_class ordrec_model\<close>
 
 context OrdRec_Model 
 begin

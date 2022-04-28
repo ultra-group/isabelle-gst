@@ -5,7 +5,7 @@ begin
 context ModelBase begin
 ML \<open>val ord_model = mcomp 
  { name = "Ordinal_Model", 
-   deps = [], 
+   deps = mcomps [], 
    variant = SOME (vari 
     { tag_name = "ord",
       vcases = 

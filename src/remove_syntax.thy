@@ -105,7 +105,9 @@ no_notation
   less  ("(_/ < _)"  [51, 51] 50)
 no_notation
   Orderings.ord_class.greater (\<open><\<close> 10)
-term \<open>x <o y\<close>
+
 no_notation ordLess2 (infix "<o" 50)
+no_notation cadd (infixl \<open>\<oplus>\<close> 65)
+
 
 end

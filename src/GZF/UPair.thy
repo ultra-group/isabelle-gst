@@ -205,6 +205,11 @@ lemma sngE :
   using sng_iff[OF \<open>x : SetMem\<close>] 
   by auto
 
+lemma sng_setof :
+  assumes a : "a : SetMem" "a : P"
+  shows "{a} : SetOf P"
+  using setofI[OF sng_set[OF a(1)]] a
+  unfolding sng_iff[OF a(1)] by auto
 
 subsection \<open>Properties of upairs and singletons\<close>
 

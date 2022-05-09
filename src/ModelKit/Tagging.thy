@@ -1,10 +1,10 @@
 theory Tagging
   imports "../GZF/SetComprehension" "../OPair/CartProd"             
           "../Ordinal/Ordinal" "../Ordinal/OrdRec" 
-          "../Ordinal/OrdQuants" "../Ordinal/DependentOrd"
+          "../Ordinal/OrdQuants"
 begin
 
-class Tagging = OrdRec + CartProd + DepSumOrd
+class Tagging = OrdRec + CartProd
 
 context Tagging begin
 

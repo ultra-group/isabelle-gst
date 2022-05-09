@@ -114,8 +114,8 @@ lemma kpair_typ_setmem : "kpair : SetMem \<rightarrow> SetMem \<rightarrow> SetM
   by (rule funI, rule funI, rule set_setmem[OF setof_set[OF kpair_setof]])
 
 theorem GZF_CartProd :
-  "class.CartProd Set (\<in>) Union Pow \<emptyset> Succ Inf \<R> (\<subseteq>) SetMem SetOf ReplPred is_kpair kpair SetMem"
-  by (intro_locales, unfold_locales, rule kpair_typ_iskpair, rule kpair_typ_setmem)
+  "class.CartProd_axioms SetMem is_kpair kpair SetMem"
+  by (unfold_locales, rule kpair_typ_iskpair, rule kpair_typ_setmem)
 
 end
 end

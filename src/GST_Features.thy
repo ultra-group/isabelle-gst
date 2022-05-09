@@ -42,7 +42,8 @@ class GZF =
     SetMem_ax   : "\<forall>b. SetMem b = (\<exists>y : Set. b \<in> y)" and
     SetOf_ax    : "\<forall>\<alpha> x. SetOf \<alpha> x = (x : Set \<and> (\<forall>b. b \<in> x \<longrightarrow> b : \<alpha>))" and
     ReplPred_ax : "\<forall>x P. ReplPred x P = (\<forall>a. a \<in> x \<longrightarrow> (\<exists>\<^sub>\<le>\<^sub>1 b: SetMem. P a b))"
-   
+
+
 class OPair = 
   fixes
     \<comment> \<open>Axiomatized constants\<close>
@@ -75,23 +76,21 @@ class BinRel = GZF + app +
     field :: \<open>'a \<Rightarrow> 'a\<close> and
     \<comment> \<open>Derived constants\<close>
     BinRelMem :: \<open>'a \<Rightarrow> bool\<close> and
-    BinRelPred :: \<open>['a, 'a, ['a,'a] \<Rightarrow> bool] \<Rightarrow> bool\<close> and
     \<comment> \<open>Default value\<close>
     BinRelation_default :: \<open>'a\<close>
   assumes 
     \<comment> \<open>Soft typings\<close>
-    mkrel_typ : "mkrel : (\<Pi> x : Set. \<Pi> y : Set. BinRelPred x y \<rightarrow> BinRel)" and 
+    mkrel_typ : "mkrel : Set \<rightarrow> Set \<rightarrow> Any \<rightarrow> BinRel" and 
     field_typ : "field : BinRel \<rightarrow> Set" and
     \<comment> \<open>Main axioms\<close>
-    rel : "\<forall>x : Set. \<forall>y : Set. \<forall>P : BinRelPred x y. 
-              (\<forall>a b. app (mkrel x y P) a b \<longleftrightarrow> (a \<in> x \<and> b \<in> y \<and> P a b))" and
+    rel : "\<forall>x : Set. \<forall>y : Set. \<forall>P. 
+        (\<forall>a b. app (mkrel x y P) a b \<longleftrightarrow> 
+          (a \<in> x \<and> b \<in> y \<and> P a b \<and> a : BinRelMem \<and> b : BinRelMem))" and
     ext : "\<forall>r : BinRel. \<forall>s : BinRel. (\<forall>a b. app r a b \<longleftrightarrow> app s a b) \<longrightarrow> r = s" and
     field_iff : "\<forall>r : BinRel. \<forall>x. x \<in> field r \<longleftrightarrow> (\<exists>y. app r x y \<or> app r y x)" and
     \<comment> \<open>Simple definitions\<close>
-    BinRelMem_def : "BinRelMem = app_mem BinRel" and
-    BinRelPred_def : "BinRelPred = 
-      (\<lambda>x y P.  \<forall>a b. a \<in> x \<longrightarrow> b \<in> y \<longrightarrow> P a b \<longrightarrow> a : BinRelMem \<and> b : BinRelMem)"
-
+    BinRelMem_def : "BinRelMem = app_mem BinRel"
+    
 class Function = GZF + app + 
   fixes 
     \<comment> \<open>Axiomatized constants\<close>

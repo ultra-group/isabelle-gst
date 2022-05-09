@@ -3,11 +3,10 @@ section \<open>Bootstrap in V - Interpreting GZF, Ord, OrdRec in Paulson's ZFC i
 theory ZFC_in_HOL_Bootstrap
   imports 
     "ZFC_in_HOL.ZFC_Typeclasses" 
-    "../GST_Features"
+    "../GST_Features" "../GZF/KPair" 
   begin
-thy_deps
-text \<open>We show that V instantiates the GZF, Ordinal, and OrdRec typeclasses\<close>
-term \<open>a \<in> x\<close>
+
+text \<open>We show that V instantiates the GZF, Ordinal, and OrdRec, and Function typeclasses\<close>
 
 text \<open>Bootstrapping GZF typeclass\<close>
 instantiation V :: GZF 
@@ -234,6 +233,39 @@ instance proof (intro_classes,
 qed
 end
 
+text \<open>Instantiation of OPair and CartProd using Kuratowski Pairs\<close>
+
+ML \<open>val GZF_OPair_ts =
+   [\<^term>\<open>is_kpair :: V \<Rightarrow> bool\<close>, \<^term>\<open>kpair :: V \<Rightarrow> V \<Rightarrow> V\<close>,
+    \<^term>\<open>SetMem :: V \<Rightarrow> bool\<close>, \<^term>\<open>GZF_default :: V\<close>]\<close>
+
+setup \<open>mk_instantiation \<^type_name>\<open>V\<close> \<^class>\<open>OPair\<close> GZF_OPair_ts @{thm GZF_OPair}\<close>
+setup \<open>mk_instantiation \<^type_name>\<open>V\<close> \<^class>\<open>CartProd\<close> [] @{thm GZF_CartProd}\<close>
+
+text \<open>Instantiation of app, BinRel and Function using sets of ordered pairs\<close>
+
+setup \<open>mk_instantiation \<^type_name>\<open>V\<close> \<^class>\<open>app\<close> [\<^term>\<open>setrel_app :: V \<Rightarrow> V \<Rightarrow> V \<Rightarrow> bool\<close>] @{thm TrueI}\<close>
+
+ML \<open>val GZF_BinRel_ts =
+   [\<^term>\<open>SetOf (SetMem * SetMem) :: V \<Rightarrow> bool\<close>,
+    \<^term>\<open>mk_setrel :: V \<Rightarrow> V \<Rightarrow> (V \<Rightarrow> V \<Rightarrow> bool) \<Rightarrow> V\<close>,
+    \<^term>\<open>setrel_field :: V \<Rightarrow> V\<close>,
+    \<^term>\<open>SetMem :: V \<Rightarrow> bool\<close>,
+    \<^term>\<open>GZF_default :: V\<close>]\<close>
+
+setup \<open>mk_instantiation \<^type_name>\<open>V\<close> \<^class>\<open>BinRel\<close> GZF_BinRel_ts @{thm GZF_BinRel}\<close>
+
+ML \<open>val GZF_Function_ts =
+  [\<^term>\<open>FuncRel :: V \<Rightarrow> bool\<close>,
+   \<^term>\<open>mk_funrel :: V \<Rightarrow> (V \<Rightarrow> V \<Rightarrow> bool) \<Rightarrow> V\<close>,
+   \<^term>\<open>domain :: V \<Rightarrow> V\<close>,
+   \<^term>\<open>range :: V \<Rightarrow> V\<close>,
+   \<^term>\<open>SetMem :: V \<Rightarrow> bool\<close>,
+   \<^term>\<open>FuncRelPred :: V \<Rightarrow> (V \<Rightarrow> V \<Rightarrow> bool) \<Rightarrow> bool\<close>,
+   \<^term>\<open>BinRelation_default :: V\<close>]\<close>
+
+setup \<open>mk_instantiation \<^type_name>\<open>V\<close> \<^class>\<open>Function\<close> GZF_Function_ts @{thm BinRel_Function}\<close>
+
 text \<open>Removing ZFC_in_HOL names from namespace,
       and making names print nicely in output panel.\<close>
 (*Hide HOL constant \<open>set\<close> so we can use it as a tag in model building*)
@@ -245,6 +277,4 @@ hide_const
  ZFC_in_HOL.Ord
  ZFC_in_HOL.Limit
  ZFC_in_HOL.succ wo_rel.succ
- 
-
 end

@@ -19,8 +19,7 @@ local_setup \<open>snd o (mk_mcomp_class ord_model)\<close>
 
 context Ordinal_Model 
 begin
-(*MOVE ME*)
-lemmas zero_ord = zero_typ
+
 
 definition mOrd :: \<open>'a \<Rightarrow> bool\<close>
   where "mOrd \<equiv> M \<triangle> \<^enum> ord"

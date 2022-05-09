@@ -27,6 +27,9 @@ lemmas lim_predset_set = predset_set[OF limit_ord]
 lemmas repfun_ord_setof = repfun_setof[OF predset_set]
 lemmas repfun_union_ord_set = union_set[OF repfun_ord_setof]
 
+
+
+
 lemma predset_mem_ord : 
   assumes "j : Ord"
   shows "i \<in> predSet j \<Longrightarrow> i : Ord"
@@ -69,6 +72,15 @@ lemma ord_setmem :
   shows "i : SetMem"
   by (rule setmemI[OF setof_set], 
       use predset_setof[OF succ_ord] mem_predset_succ i in auto)
+
+lemma ord_model_case_typ :
+  assumes j : "j : Ord"
+  shows "caseof_ord {0} {j} {j} j : SetOf Ord"
+  by (rule case_ordE[OF j], 
+      rule sng_setof[OF ord_setmem[OF zero_ord] zero_ord],
+      rule sng_setof[OF ord_setmem[OF j] j],
+      rule sng_setof[OF ord_setmem[OF j] j])
+
 
 lemma ordrec_succ : 
   assumes "b : Ord" 

@@ -156,7 +156,6 @@ lemmas set_setmem = subtypE[OF set_setmem_subtyp]
 
 subsection \<open>Rules for a witness of Axiom of Infinity\<close>
 
-thm inf
 lemma inf0 : "\<emptyset> \<in> Inf" by (simp add: inf)
 lemma inf_closed: "x \<in> Inf \<Longrightarrow> Succ x \<in> Inf" by (simp add: inf)
 (* lemma inf_set : "Inf : Set" by (rule Inf_typ) *)
@@ -165,7 +164,7 @@ subsection \<open>Rules for Replacement and derived operators\<close>
 
 thm ReplPred_def
 lemma replpredI :
-  assumes "x : Set" "\<And>a. a \<in> x \<Longrightarrow> \<exists>\<^sub>\<le>\<^sub>1 b : SetMem. P a b"
+  assumes "\<And>a. a \<in> x \<Longrightarrow> \<exists>\<^sub>\<le>\<^sub>1 b : SetMem. P a b"
   shows "P : ReplPred x"
   using assms
   unfolding ReplPred_def has_ty_def by auto
@@ -233,7 +232,5 @@ proof (rule depfunI, rule funI)
     qed
   qed
 qed
-
-
 end
 end

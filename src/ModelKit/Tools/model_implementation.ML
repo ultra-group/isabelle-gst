@@ -8,11 +8,12 @@ fun mk_if_eq typ v n b c =
    mk_if typ (HOLogic.eq_const (fastype_of n) $ v $ n) b c
 
 (*Builds the term \<open>caseof_ord b f g\<close> *)
-fun mk_ordcases typ (b,f,g) =
+fun mk_ordcases typ (z,s,l) =
   let val caseop = Const ("Ordinal.Ordinal_class.caseof_ord", 
-          typ --> (typ --> typ --> typ) --> (typ --> typ --> typ) --> (typ --> typ --> typ))
-  in caseop $ b $ f $ g end
+          typ --> typ --> typ --> typ --> typ)
+  in caseop $ z $ s $ l end
 
+fun emp_const typ = Const ("GST_Features.GZF_class.Emp", typ)
 fun zero_const typ = Const ("GST_Features.Ordinal_class.zero", typ)
 fun mk_succ typ n = Const ("GST_Features.Ordinal_class.succ", typ --> typ) $ n
 fun ord_pred_const typ = (Const ("GST_Features.Ordinal_class.Ord", typ --> @{typ bool}))
@@ -37,9 +38,9 @@ fun ordinal_list typ k =
 fun mk_variants typ cols = 
   let
     val (i,j,x) = (Bound 2, Bound 1, Bound 0)
-    val default = Const ("GST_Features.Ordinal_class.Ordinal_default", typ)
-    val ord_cases = map (fn (ord,col) => (ord, mk_ordcases typ col $ j $ x)) cols
-    val body = mk_ord_seq typ i default ord_cases
+    val ord_cases = map (fn (ord,(z,s,l)) => 
+                      (ord, mk_ordcases typ (z, s $ j $ x, l $ j $ x) $ j)) cols
+    val body = mk_ord_seq typ i (emp_const typ) ord_cases
   in Term.abs ("i", typ) (Term.abs ("j", typ) (Term.abs ("x", typ) body)) end
 
 
@@ -56,7 +57,10 @@ fun get_cols ctxt typ ms =
 
 fun mk_variants_case_rule typ (vname,vdef_thm,vtrm) ((n, (otrm, (z,s,l))), ctxt) =
   let
-    val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (betapply (vtrm,otrm), mk_ordcases typ (z,s,l)))
+    val (j,x) = (Free ("j", typ), Free ("x", typ))
+    val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq 
+              (betapplys (vtrm, [otrm, j, x]), 
+               (mk_ordcases typ (z, s $ j $ x, l $ j $ x) $ j)))
     val thm_name = vname ^ "_" ^ Int.toString n
     val state = Proof.theorem NONE (after_qed (Binding.name thm_name, [])) [[(eq,[])]] ctxt
     val state' = Proof.unfolding [[([vdef_thm, if_thm n], [])]] state
@@ -67,7 +71,7 @@ fun mk_variants_case_rule typ (vname,vdef_thm,vtrm) ((n, (otrm, (z,s,l))), ctxt)
 fun mk_variants_zero_rule typ (vname,vcase_thm,vtrm) ((n,(otrm, (zero_case, _, _))), ctxt) =
   let
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq 
-                (betapplys (vtrm,[otrm, zero_const typ, Free ("x", typ)]), zero_case))
+          (betapplys (vtrm,[otrm, zero_const typ, Free ("x", typ)]), zero_case))
     
     val thm_name = vname ^ "_" ^ Int.toString n ^ "_zero"
     val state = Proof.theorem NONE (after_qed (Binding.name thm_name, [])) [[(eq,[])]] ctxt
@@ -209,8 +213,13 @@ fun defn_tags typ ms lthy =
         (iden ^ "_" ^ last_field (fst (Term.dest_Type typ)),trm, NoSyn)) (tag_idens ~~ ords)
     in make_defns lthy defs end
 
+(* fun defn_mdefault typ trm lthy = 
+    let val typ_name = last_field (fst (Term.dest_Type typ))
+    in make_defn ("mdefault_" ^ typ_name) trm NoSyn lthy end *)
+
 fun model_implementation typ ms ex_preds styps =
     (defn_tags typ ms)
+  (* o (defn_mdefault typ mdefault) *)
   o (create_variants_op typ ms) 
   o (create_excluded_op typ ex_preds)
   o (create_slot_typ_op typ styps)

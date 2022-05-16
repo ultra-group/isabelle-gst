@@ -74,6 +74,10 @@ lemma proj_eq' :
   obtains a b where "a : PairMem" "b : PairMem" "p = <a,b>"
   using proj_eq[OF p] pairmemI_eq[OF p] by auto
 
+lemma pair_pmem :
+  "p : Pair \<Longrightarrow> p : PairMem"
+  using proj_eq' pair_pairmem by metis
+
 definition fst :: "'a \<Rightarrow> 'a" (\<open>\<tau>\<close>) where
   "\<tau> p \<equiv> \<iota> a. \<exists>b. p = pair a b else OPair_default"
 definition snd :: "'a \<Rightarrow> 'a" (\<open>\<pi>\<close>) where

@@ -58,10 +58,18 @@ lemma variants_setseq2 :
   by (rule depfunI, rule variants_set2[OF _ j x])
 
 
-subsection \<open>Operator for removing Excluded stuff from a set\<close>
+subsection \<open>Operator for removing Excluded stuff from a set/type\<close>
 
 definition RemoveExcluded :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infix \<open>\<ominus>\<close> 60)
   where "RemoveExcluded x i \<equiv> { b \<in> x | \<not> Excluded i b }"
+
+definition RemoveExcludedTyp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> bool)" (infix \<open>\<oslash>\<close> 50)
+  where "P \<oslash> i \<equiv> P \<sslash> (Excluded i)"
+
+lemma extypD1 :
+  assumes "x : P \<oslash> i"
+  shows "x : P"
+  using assms unfolding RemoveExcludedTyp_def diff_typ_iff by auto
 
 lemma exset_set : 
   assumes "x : Set" 
@@ -115,6 +123,8 @@ lemma ex_subset2 :
     shows "x \<subseteq> y \<ominus> i \<Longrightarrow> x \<subseteq> y"
   using subset_iff exset_iff x y 
   by auto
+
+
 
   
 section \<open>Tier -- model building operator\<close>

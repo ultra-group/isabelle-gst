@@ -219,7 +219,7 @@ lemmas not_typD = iffD1[OF not_typ_iff]
    and not_typI = iffD2[OF not_typ_iff]
 
 
-subsection \<open>Negation type\<close>
+subsection \<open>Empty type\<close>
 
 definition empty_typ :: \<open>('a \<Rightarrow> bool)\<close> (\<open>\<bottom>\<close>)
   where "\<bottom> \<equiv> (\<lambda>x. False)"
@@ -238,9 +238,21 @@ lemma neg_empty : "\<not> x : \<bottom>"
 lemma not_empty : "x : \<sim> \<bottom>"
   using not_typI[OF neg_empty] . 
 
+subsection \<open>Difference type constructor\<close>
 
+definition diff_typ :: \<open>('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool)\<close> (infixl \<open>\<sslash>\<close> 50)
+  where "P \<sslash> Q \<equiv> P \<triangle> \<sim> Q"
 
-ML \<open>domain_type (Term.fastype_of @{term \<open>F :: 'a \<Rightarrow> 'b\<close>})\<close>
+lemma diff_typI :
+  assumes "x : P" "\<not> x : Q"
+    shows "x : P \<sslash> Q"
+  unfolding diff_typ_def
+  by (rule intI[OF assms(1) not_typI[OF assms(2)]])
+
+lemma diff_typ_iff :
+  "x : P \<sslash> Q \<longleftrightarrow> x : P \<and> \<not> x : Q"
+  unfolding diff_typ_def inter_ty_def not_typ_def has_ty_def
+  by auto
 
 ML \<open>
 fun mk_styping_trm trm typ styp = 

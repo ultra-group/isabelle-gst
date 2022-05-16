@@ -128,7 +128,8 @@ instance V :: GZF_Model sorry
 instance V :: Ordinal_Model sorry
 instance V :: OrdRec_Model sorry
 
-thm Part_def 
+
+
 
 
 end

@@ -34,14 +34,21 @@ fun mk_variants_0 i A =
     (@{term Variants} $ i $ @{term 0}, Abs ("x", @{typ 'a}, A))) 
 
 fun mk_variants_succ i F = 
+    Logic.mk_implies (
+      HOLogic.mk_Trueprop (mk_styping \<^term>\<open>j :: 'a\<close> \<^term>\<open>Ord\<close>), 
+      HOLogic.mk_Trueprop (HOLogic.mk_eq 
+        (@{term Variants} $ i $ (@{term "succ j"}), F $ @{term "succ j"})))
+
+(* fun mk_variants_succ i F = 
   HOLogic.mk_Trueprop (mk_tall ("j", @{typ 'a}, @{term Ord}, 
       HOLogic.mk_eq (@{term Variants} $ i $ (@{term "succ j"}), 
-                     F $ @{term "succ j"})))
+                     F $ @{term "succ j"})))*)
 
 fun mk_variants_lim i G = 
-  HOLogic.mk_Trueprop (mk_tall ("\<mu>", @{typ 'a}, @{term Limit},
-      HOLogic.mk_eq (@{term Variants} $ i $ (@{term "\<mu> :: 'a"}), 
-                     G $ @{term "\<mu> :: 'a"})))
+  Logic.mk_implies 
+    (HOLogic.mk_Trueprop (mk_styping \<^term>\<open>u :: 'a\<close> \<^term>\<open>Limit\<close>),
+     HOLogic.mk_Trueprop (HOLogic.mk_eq 
+       (@{term Variants} $ i $ (@{term "u :: 'a"}), G $ @{term "u :: 'a"})))
 
 fun tag_formula B = 
   HOLogic.mk_Trueprop (mk_styping_trm B @{typ 'a} @{term Tag}) 

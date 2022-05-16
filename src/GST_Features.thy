@@ -192,5 +192,5 @@ local_setup \<open>snd o combine_features "ZFPN"
        (\<^class>\<open>OPair\<close>, Free ("Emp", @{typ 'a})),
        (\<^class>\<open>Nat\<close>, Free ("Emp", @{typ 'a}))]
       [Free ("Set", @{typ \<open>'a \<Rightarrow> bool\<close>}), Free ("Pair", @{typ \<open>'a \<Rightarrow> bool\<close>}), Free ("Nat", @{typ \<open>'a \<Rightarrow> bool\<close>})]\<close>
-
+thm Repl_typ_default
 end

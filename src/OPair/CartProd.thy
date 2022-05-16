@@ -129,14 +129,14 @@ lemma cprodE_pair :
   using cprod_iff[OF assms] by auto   
 
 lemma cprodD1 : 
-  assumes "x : Set" "y : Set" "pair a b : Pair" 
+  assumes "x : Set" "y : Set" 
   shows "pair a b \<in> x \<times> y \<Longrightarrow> a \<in> x" 
-  using cprod_iff_pair assms by auto
+  using cprod_iff_pair[OF assms] setof_mem[OF cprod_setof[OF assms]]  by auto
 
 lemma cprodD2 : 
-  assumes "x : Set" "y : Set" "pair a b : Pair" 
+  assumes "x : Set" "y : Set" 
   shows "pair a b \<in> x \<times> y \<Longrightarrow> b \<in> y"
-  using cprod_iff_pair[OF assms] by auto
+  using cprod_iff_pair[OF assms] setof_mem[OF cprod_setof[OF assms]] by auto
 
 lemma cprod_eq : "\<lbrakk> x=x' ; y=y' \<rbrakk> \<Longrightarrow> x\<times>y = x'\<times>y'" by auto
 

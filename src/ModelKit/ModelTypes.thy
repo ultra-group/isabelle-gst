@@ -27,6 +27,40 @@ lemma mE :
   unfolding inModel_def tex_def has_ty_def
   by auto
 
+theorem mE2 :
+  assumes b : "b : M" and c : "c : M"
+  obtains i where 
+    "i : Ord" "b \<in> Tier i" "c \<in> Tier i"
+proof -
+  from b c obtain j k where
+    "j : Ord" "k : Ord" 
+    "b \<in> Tier j""c \<in> Tier k" by (metis mE)
+  then obtain i where 
+    "i : Ord" "b \<in> Tier i" "c \<in> Tier i"
+    by (rule greatest_tier)
+  thus ?thesis ..
+qed
+
+theorem mE_ex :
+  assumes b : "b : M \<oslash> i"
+  obtains j where 
+    "j : Ord" "b \<in> Tier j \<ominus> i"
+proof -
+  have "b : M" and ex :"\<not> Excluded i b"
+    using b unfolding RemoveExcludedTyp_def diff_typ_iff 
+    unfolding has_ty_def by auto
+  then obtain j where "j : Ord" "b \<in> Tier j \<ominus> i"
+    using mE exsetI[OF tier_set] by metis
+  thus ?thesis ..
+qed
+
+theorem mI_ex :
+  assumes "j : Ord" "b \<in> Tier j \<ominus> i"
+  shows "b : M \<oslash> i"
+  unfolding RemoveExcludedTyp_def diff_typ_iff
+  using assms mI exset_iff[OF tier_set[OF \<open>j : Ord\<close>]]
+  unfolding has_ty_def by auto
+
 lemma m_induct :
   assumes x : \<open>x : M\<close> 
       and zero : \<open>x \<in> Tier 0 \<Longrightarrow> P\<close>

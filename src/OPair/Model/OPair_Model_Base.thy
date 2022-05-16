@@ -32,8 +32,15 @@ definition mPairMem :: \<open>'a \<Rightarrow> bool\<close>
   where "mPairMem \<equiv> M \<oslash> opair"
 
 definition mpair :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>
-  where "mpair b c \<equiv> if b : mPairMem \<and> c : mPairMem 
-                     then mpair' b c else OPair_Model_mdefault"
+  where "mpair x y \<equiv> 
+    if \<not> x : mPairMem then 
+      if \<not> OPair_Model_mdefault : mPair 
+      then OPair_Model_mdefault else x 
+    else
+      if \<not> y : mPairMem then
+        if \<not> OPair_Model_mdefault : mPair 
+        then OPair_Model_mdefault else y
+      else mpair' x y"
 
 lemma mpair_eq :
   assumes "b : mPairMem" "c : mPairMem"
@@ -150,6 +157,37 @@ lemma mpmemE :
     where "j : Ord" "b \<in> Tier j \<ominus> opair"
   using assms unfolding mPairMem_def by (blast elim: mE_ex)
 
+lemma mPair_mpmem : "p : mPair \<Longrightarrow> p : mPairMem" 
+proof -
+  assume "p : mPair"
+  then obtain i p' where 
+    "i : Ord" "p \<in> Tier i" "p = <opair, p'>"
+    using mE partE
+    unfolding mPair_def inter_ty_def has_ty_def by metis
+  hence "p \<in> Tier i \<ominus> opair"
+    using exsetI[OF tier_set[OF \<open>i : Ord\<close>], of _ opair]  
+          opair_not_excluded by auto
+  thus "p : mPairMem"
+    using mpmemI[OF \<open>i : Ord\<close>] by simp
+qed
+
+lemma mpair_mpmem : 
+  assumes "mpair b c : mPair"
+  shows "b : mPairMem \<and> c : mPairMem"
+proof (rule ccontr, auto)
+  assume b:"\<not> b : mPairMem"
+  hence "\<not> mpair b c : mPair"
+    using mPair_mpmem
+    unfolding mpair_def by auto
+  thus "False" using assms ..
+next
+  assume b:"\<not> c : mPairMem"
+  hence "\<not> mpair b c : mPair"
+    using mPair_mpmem
+    unfolding mpair_def by auto
+  thus "False" using assms ..
+qed
+
 corollary mpmem_m : 
   "b : mPairMem \<Longrightarrow> b : M" 
   unfolding mPairMem_def
@@ -200,6 +238,13 @@ proof (rule funI, rule funI, rule intI)
     using mpmemI[OF succ_ord[OF \<open>k : Ord\<close>]] by simp
 qed
 
+corollary mpair_typ_ax :
+  "m\<forall>x. x : mPairMem \<longrightarrow> (m\<forall>x. x : mPairMem \<longrightarrow>
+    mpair x x : mPair \<triangle> mPairMem)"
+   using mpair_typ
+   unfolding fun_ty_def mall_def tall_def has_ty_def 
+   by auto
+
 lemma mpair_iff :
   assumes b : "b : mPairMem" and c : "c : mPairMem"
       and u : "u : mPairMem" and v : "v : mPairMem"
@@ -216,6 +261,13 @@ proof -
     by (simp add: pair_iff_eq) 
 qed
 
+corollary mpair_iff_ax :
+  "m\<forall>a : mPairMem. m\<forall>b : mPairMem.
+    m\<forall>c : mPairMem. m\<forall>d : mPairMem.
+      (mpair a b = mpair c d) = (a = c \<and> b = d)"
+  using mpair_iff 
+  unfolding mtall_def mall_def by auto
+ 
 lemma mpair_proj :
   assumes "p : mPair"
   obtains b c where 
@@ -239,6 +291,11 @@ proof -
     unfolding mpair_eq[OF bc] \<open>p' = <b,c>\<close> by auto
   ultimately show ?thesis ..
 qed
+
+corollary mpair_proj_ax :
+  "m\<forall>p : mPair. m\<exists>a b. p = mpair a b"
+  unfolding mtall_def mall_def mex_def tex_def
+  by (auto, erule mpair_proj, use mpmem_m in auto)
 
 theorem mpmem_ax :
   "m\<forall>b. mPairMem b = (m\<exists>p : mPair. m\<exists>c. p = mpair b c \<or> p = mpair c b)" 
@@ -264,10 +321,13 @@ next
   then obtain p c where 
     "p : mPair" "c : M" "p = mpair b c \<or> p = mpair c b"
     unfolding mtex_def mex_def tex_def by auto
-  hence "b : mPairMem" 
-    using \<open>b : M\<close>
-    
-
-translate_axioms mOPair_axioms : mOPair sorry 
+  thus "mPairMem b"
+    using mpair_mpmem
+    unfolding has_ty_def by auto
+qed
+      
+translate_axioms mOPair_axioms : mOPair
+  by (rule mpair_typ_ax, rule mpair_iff_ax, 
+      rule mpair_proj_ax, rule mpmem_ax)
 
 end

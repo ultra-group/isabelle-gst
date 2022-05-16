@@ -4,7 +4,7 @@ begin
 
 hide_const set ZFC_in_HOL.set
 
-context ModelBase begin
+context ModelBase' begin
 ML \<open>val set_model = mcomp
  { name = "GZF_Model", 
    deps = mcomps [], 
@@ -20,10 +20,16 @@ ML \<open>val set_model = mcomp
     [("not_set_excluded_mset", @{prop \<open>\<not> Excluded set <set, x'>\<close>})]
  }\<close>
 end
-
 local_setup \<open>snd o (mk_mcomp_class set_model)\<close>
 
+lemma gzf_model_case_typ :
+  assumes j : "j : Ord" and x : "x : Set" 
+  shows "caseof_ord \<emptyset> (\<P> x) \<emptyset> j : SetOf Set"
+  by (rule case_ordE[OF j], 
+      use emp_set pow_setof[OF x] emp_setof in auto)
+
 context GZF_Model begin
+
 definition mSet :: \<open>'a \<Rightarrow> bool\<close>
   where "mSet \<equiv> M \<triangle> (\<^enum> set)"
 
@@ -147,7 +153,7 @@ qed
 theorem mI_mset :
   assumes j: "j : Ord" and x':"x' : Set"
       and x'_sub : "x' \<subseteq> Tier j \<ominus> set"
-  shows "<set,x'> : M"
+    shows "<set,x'> : M"
   using mI[OF succ_ord[OF j]] tierI_mset[OF j x' x'_sub] by auto
 
 theorem mE_mset : 

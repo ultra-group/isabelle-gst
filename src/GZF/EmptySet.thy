@@ -19,6 +19,9 @@ lemma not_mem_empty : "a \<notin> \<emptyset>"
 
 lemmas emptyE [elim] = not_mem_empty [THEN notE]
 
+lemma emp_setof : "\<emptyset> : SetOf P"
+  using setofI[OF emp_set emptyE] .
+
 (*Added assumption: \<open>A : Set\<close>*)
 lemma empty_subsetI [simp]: 
   assumes "x : Set" 

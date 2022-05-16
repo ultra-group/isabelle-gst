@@ -16,16 +16,14 @@ definition setrel_app
 definition mk_setrel 
   where "mk_setrel x y P \<equiv> Collect (cprod x y) (\<lambda>p. P (fst p) (snd p))"
 definition setrel_field 
- where "setrel_field r \<equiv> RepFun r fst \<union> RepFun r snd"
-definition setrel_pred 
-  where "setrel_pred x y P \<equiv> \<forall>a b. a \<in> x \<longrightarrow> b \<in> y \<longrightarrow> P a b \<longrightarrow> a : SetMem \<and> b : SetMem"
+  where "setrel_field r \<equiv> RepFun r fst \<union> RepFun r snd"
+
 theorem GZF_BinRel : 
-  "class.BinRel Set (\<in>) Union Pow \<emptyset> Succ Inf \<R> (\<subseteq>) SetMem SetOf ReplPred 
-   setrel_app (SetOf (SetMem * SetMem)) mk_setrel setrel_field SetMem setrel_pred"
+  "class.BinRel_axioms Set (\<in>) setrel_app (SetOf (SetMem * SetMem)) mk_setrel setrel_field SetMem"
 proof
-  show mkrel_typ : "mk_setrel : (\<Pi> x:Set. \<Pi> y:Set. setrel_pred x y \<rightarrow> SetOf (SetMem * SetMem))"
+  show mkrel_typ : "mk_setrel : Set \<rightarrow> Set \<rightarrow> Any \<rightarrow> SetOf (SetMem * SetMem)"
     unfolding mk_setrel_def
-  proof (rule depfunI, rule depfunI, rule funI, rule collect_typ_subset)
+  proof (rule funI, rule funI, rule funI, rule collect_typ_subset)
     fix x y assume "x : Set" "y : Set"
     hence "x : SetOf SetMem" "y : SetOf SetMem" using setofI setmemI by auto
     thus "x \<times> y : SetOf (SetMem * SetMem)" using cprod_setof_prod by auto
@@ -35,20 +33,24 @@ proof
     unfolding setrel_field_def
   by (rule funI, rule un_set[OF repfun_set repfun_set], use setof_set in auto)
    
-  show "\<forall>x : Set. \<forall>y : Set. \<forall>P : setrel_pred x y.
-          \<forall>a b. setrel_app (mk_setrel x y P) a b = (a \<in> x \<and> b \<in> y \<and> P a b)"
+  show "\<forall>x : Set. \<forall>y : Set. \<forall>P.
+          \<forall>a b. setrel_app (mk_setrel x y P) a b \<longleftrightarrow> 
+            (a \<in> x \<and> b \<in> y \<and> P a b \<and> a : SetMem \<and> b : SetMem)"
   proof (rule, rule, rule, rule, rule, rule)
-    fix x y P a b assume "x : Set" "y : Set" "P : setrel_pred x y"
+    fix x y P a b assume "x : Set" "y : Set"
     hence rtyp : "mk_setrel x y P : SetOf (SetMem * SetMem)" 
-      by (rule funE[OF depfunE[OF depfunE[OF mkrel_typ]]])
-    show "setrel_app (mk_setrel x y P) a b \<Longrightarrow> (a \<in> x \<and> b \<in> y \<and> P a b)"
+      by (rule funE[OF funE[OF funE[OF mkrel_typ]] anyI])
+
+    show "setrel_app (mk_setrel x y P) a b \<Longrightarrow> 
+      (a \<in> x \<and> b \<in> y \<and> P a b \<and> a : SetMem \<and> b : SetMem)"
     unfolding setrel_app_def proof (auto)
       assume "a : SetMem" "b : SetMem" "<a, b> \<in> mk_setrel x y P"
       hence "<a,b> : Pair" "<a,b> \<in> x \<times> y" "P (fst (pair a b)) (snd (pair a b))"
           using setmem_pair mk_setrel_def collect_iff[OF cprod_set[OF \<open>x : Set\<close> \<open>y : Set\<close>]] by auto
       thus "a \<in> x" "b \<in> y" "P a b" using fst_eq snd_eq cprod_iff_pair[OF \<open>x : Set\<close> \<open>y : Set\<close>] by auto
     qed
-    show "a \<in> x \<and> b \<in> y \<and> P a b \<Longrightarrow> setrel_app (mk_setrel x y P) a b"
+    show "a \<in> x \<and> b \<in> y \<and> P a b \<and> a : SetMem \<and> b : SetMem \<Longrightarrow> 
+      setrel_app (mk_setrel x y P) a b"
       unfolding setrel_app_def mk_setrel_def 
     proof (auto intro: setmemI[OF \<open>x : Set\<close>] setmemI[OF \<open>y : Set\<close>], 
            rule collectI[OF cprod_set[OF \<open>x : Set\<close> \<open>y : Set\<close>]],
@@ -99,19 +101,7 @@ proof
   proof (rule, rule)
     fix r x assume rtyp:"r : SetOf (SetMem * SetMem)"
     hence rset:"r : Set" by (rule setof_set)
-   (*  have fst:"fst : SetFun r" proof (rule setfunI, drule setof_mem[OF rtyp])
-      fix p assume "p : SetMem ** SetMem"
-      then obtain a b where "p : Pair" "p = pair a b" "a : SetMem" 
-        using setmem_pair by (blast elim: productE)
-      thus "fst p : SetMem" using fst_eq by auto
-    qed
-    have snd:"snd : SetFun r" proof (rule setfunI, drule setof_mem[OF rtyp])
-      fix p assume "p : SetMem ** SetMem"
-      then obtain a b where "p : Pair" "p = pair a b" "b : SetMem" 
-        using setmem_pair by (blast elim: productE)
-      thus "snd p : SetMem" using snd_eq by auto
-    qed
- *)
+
     show "x \<in> setrel_field r \<longleftrightarrow> (\<exists>y. setrel_app r x y \<or> setrel_app r y x)" 
       unfolding setrel_field_def
     proof (rule)
@@ -173,28 +163,31 @@ proof
     show ?thesis 
       by (rule, insert spec[OF eq], unfold has_ty_def, auto)
   qed
-
-  show "setrel_pred = (\<lambda>x y P. \<forall>a b. a \<in> x \<longrightarrow> b \<in> y \<longrightarrow> P a b \<longrightarrow> a : SetMem \<and> b : SetMem)"
-    unfolding setrel_pred_def ..
 qed
 
-interpretation BinRel
+sublocale BinRel
   where BinRel = "SetOf (SetMem * SetMem)"
     and app = setrel_app
     and mkrel = mk_setrel
     and field = setrel_field
     and BinRelMem = SetMem
-    and BinRelPred = setrel_pred 
     and BinRelation_default = GZF_default
-    by (rule GZF_BinRel)
+  using GZF_BinRel by intro_locales
 
-interpretation Function
+theorem GZF_Function :
+  "class.Function_axioms Set (\<in>) setrel_app
+     FuncRel mk_funrel domain range SetMem FuncRelPred"
+  using BinRel_Function .
+
+sublocale Function
   where Function = FuncRel
     and app = setrel_app
     and mkfun = mk_funrel
     and dom = domain
-  by (rule Function_interpretation)
-
+    and ran = range
+    and FunMem = SetMem
+    and FunPred = FuncRelPred
+  using GZF_Function by intro_locales
 
 end
 end

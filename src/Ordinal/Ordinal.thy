@@ -564,37 +564,34 @@ lemma least_default :
 
 subsection \<open>Ordinal case operator\<close>
 
-definition caseof_ord :: \<open>['a, 'a \<Rightarrow> 'a \<Rightarrow> 'a, 'a \<Rightarrow> 'a \<Rightarrow> 'a] \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a)\<close>
-  where "caseof_ord z s l i b \<equiv>
+definition caseof_ord :: \<open>['a, 'a, 'a, 'a] \<Rightarrow> 'a\<close>
+  where "caseof_ord z s l i \<equiv>
     if i = 0 then z else 
-      if (\<exists>j : Ord. i = succ j) then s i b else 
-        if i : Limit then l i b else Ordinal_default"
+      if (\<exists>j : Ord. i = succ j) then s else 
+        if i : Limit then l else Ordinal_default"
         
 lemma case_ord_zero :
-  "caseof_ord b f g 0 x = b"
+  "caseof_ord b f g 0 = b"
   unfolding caseof_ord_def by auto
 
 lemma case_ord_succ :
   assumes j:"j : Ord"
-  shows "caseof_ord b f g (succ j) x = f (succ j) x"
+  shows "caseof_ord b s l (succ j) = s"
   unfolding caseof_ord_def 
   using succ_nonzero[OF j] not_succ_limit[OF j] j by auto
 
 lemma case_ord_lim :
   assumes u:"u : Limit"
-  shows "caseof_ord b f g u x = g u x"
+  shows "caseof_ord b s l u = l"
   unfolding caseof_ord_def 
   using limit_nonzero u not_succ_limit by auto
 
 lemma case_ordE :
-  assumes i: "i : Ord" 
-      and c: "c = caseof_ord b f g i x"    
-  obtains (zero) "c = b"
-        | (succ) "c = f i x"
-        | (lim)  "c = g i x"
-  using ord_cases[OF i] case_ord_zero case_ord_succ case_ord_lim
-  unfolding c by metis
-
+  assumes i: "i : Ord" and
+    "P z" "P s" "P l"
+  shows "P (caseof_ord z s l i)"
+  using ord_cases[OF i] case_ord_zero case_ord_succ case_ord_lim assms
+  by metis
 end
 
 ML \<open>fun mk_ord_thm z _ 0 = z

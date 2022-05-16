@@ -23,7 +23,7 @@ fun ofclass_form ctxt typ cla =
 
 fun class_params thy cla = #params (Axclass.get_info thy cla)
 fun class_param_names thy cla = map (last_field o fst) (class_params thy cla)
-
+fun class_axioms thy cla = #axioms (Axclass.get_info thy cla)
 fun interp_generic_term ctxt cla typ trm =
   let
     val morph = interp_morphism ctxt cla
@@ -42,6 +42,10 @@ fun get_class_deps thy cla =
     | xs => xs
   end
 
+fun cla_insts ctxt cla typ = 
+  let val ps = class_params (get_thy ctxt) cla
+  in map (interp_generic_term ctxt cla typ o Const) ps end
+
 (*-------- Automatically proving instantiations --------*)
 
 fun open_instantiation typ_str cla thy = 
@@ -56,26 +60,40 @@ fun add_param_defs typ_str ts cla lthy =
     make_defns lthy defns
   end
 
-fun prove_instance def_thms loc_thm cla lthy =
-  let 
-    fun ofclass_tac lthy = resolve_tac lthy [snd (Class.rules (get_thy lthy) cla)] 1 
-    fun unfold_defs lthy = unfold_tac lthy def_thms
-    fun loc_tac lthy = resolve_tac lthy [loc_thm] 1
-  in  
-    Class.prove_instantiation_exit 
-      (fn lthy => ofclass_tac lthy THEN unfold_defs lthy THEN loc_tac lthy) lthy
+fun get_dep_trivs thy cla = map (Thm.class_triv thy) (\<^class>\<open>type\<close> :: get_class_deps thy cla) 
+
+fun prove_instance def_thms lthm cla lthy =
+  let
+    fun intro_tac lthy = resolve_tac lthy [#intro (Axclass.get_info (get_thy lthy) cla)] 1
+    val trivs = get_dep_trivs (get_thy lthy) cla
+    fun resolve_trivs lthy = REPEAT_DETERM (resolve_tac lthy trivs 1)
+    fun resolve_lthm lthy = resolve_tac lthy [lthm] 1
+  in 
+    Class.prove_instantiation_exit (fn lthy => 
+      intro_tac lthy 
+        THEN resolve_trivs lthy 
+        THEN (TRY (unfold_tac lthy def_thms
+        THEN resolve_lthm lthy))) lthy
   end
 
 fun get_loc_thm_trms thm typ =
      (snd o strip_comb o subst_TVars [(("'a", 0), typ)] 
        o HOLogic.dest_Trueprop o Thm.full_prop_of) thm
 
+fun get_trm_inst_defs thm typ_str thy = 
+      map (Global_Theory.get_thm thy 
+      o (fn iden => iden ^ "_" ^ (last_field typ_str) ^ "_def") 
+      o last_field o fst o dest_Const) (get_loc_thm_trms thm \<^typ>\<open>_\<close>)
+
+fun get_lthm thy cla = (class_axioms thy cla)
+
 fun mk_instantiation typ_str cla ts loc_thm thy = 
   let 
-    val lthy' = open_instantiation typ_str cla thy
-    val lthy'' = add_param_defs typ_str ts cla lthy' 
-    val def_thms = map (Global_Theory.get_thm (get_thy lthy'') 
-                        o (fn iden => iden ^ "_" ^ (last_field typ_str) ^ "_def")) 
-                   (class_param_names thy cla)
+    val lthy'    = open_instantiation typ_str cla thy
+    val lthy''   = add_param_defs typ_str ts cla lthy' 
+    val def_thms = case get_lthm thy cla of
+      [lthm] => get_trm_inst_defs lthm typ_str (get_thy lthy'')
+    | [] => [] 
+    | _ => error "lthm list longer than expected"
     val thy' = prove_instance def_thms loc_thm cla lthy''
   in thy' end

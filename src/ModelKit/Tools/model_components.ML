@@ -91,8 +91,8 @@ fun mk_mcomp_class (m as mcomp {name, deps, variant, excludes_formulas}) ctxt =
 
 (*------ Model component morphisms -------*)
 
-(*A term morphism is a pair of a morphism, together with a list of 
-  terms that forms a subset of the domain of that morphism*)
+(* A term morphism is a pair of a morphism, together with a list of 
+   terms that forms a subset of the domain of that morphism *)
 (*The list is the SUPPORT of the tern part of the morphism*)
 
 type model_sig = 

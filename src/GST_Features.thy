@@ -74,6 +74,7 @@ class BinRel = GZF + app +
     BinRel :: \<open>'a \<Rightarrow> bool\<close> and 
     mkrel :: \<open>['a, 'a, ['a,'a] \<Rightarrow> bool] \<Rightarrow> 'a\<close> and
     field :: \<open>'a \<Rightarrow> 'a\<close> and
+    relspace :: \<open>'a \<Rightarrow> 'a\<close> (\<open>\<RR>\<close>) and
     \<comment> \<open>Derived constants\<close>
     BinRelMem :: \<open>'a \<Rightarrow> bool\<close> and
     \<comment> \<open>Default value\<close>
@@ -82,12 +83,14 @@ class BinRel = GZF + app +
     \<comment> \<open>Soft typings\<close>
     mkrel_typ : "mkrel : Set \<rightarrow> Set \<rightarrow> Any \<rightarrow> BinRel" and 
     field_typ : "field : BinRel \<rightarrow> Set" and
+    relspace_typ : "relspace : Set \<rightarrow> SetOf BinRel" and
     \<comment> \<open>Main axioms\<close>
     rel : "\<forall>x : Set. \<forall>y : Set. \<forall>P. 
         (\<forall>a b. app (mkrel x y P) a b \<longleftrightarrow> 
           (a \<in> x \<and> b \<in> y \<and> P a b \<and> a : BinRelMem \<and> b : BinRelMem))" and
     ext : "\<forall>r : BinRel. \<forall>s : BinRel. (\<forall>a b. app r a b \<longleftrightarrow> app s a b) \<longrightarrow> r = s" and
     field_iff : "\<forall>r : BinRel. \<forall>x. x \<in> field r \<longleftrightarrow> (\<exists>y. app r x y \<or> app r y x)" and
+    relspace_ax : "\<forall>x : Set. \<forall>r : BinRel. r \<in> \<RR> x \<longleftrightarrow> (field r \<subseteq> x)" and
     \<comment> \<open>Simple definitions\<close>
     BinRelMem_def : "BinRelMem = app_mem BinRel"
     
@@ -98,6 +101,7 @@ class Function = GZF + app +
     mkfun :: \<open>['a, ['a,'a] \<Rightarrow> bool] \<Rightarrow> 'a\<close> and
     dom :: \<open>'a \<Rightarrow> 'a\<close> and
     ran :: \<open>'a \<Rightarrow> 'a\<close> and
+    funspace :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close> (infixr \<open>\<midarrow>p\<rightarrow>\<close> 60) and
     \<comment> \<open>Derived constants\<close>
     FunMem :: \<open>'a \<Rightarrow> bool\<close> and
     FunPred :: \<open>['a, ['a,'a] \<Rightarrow> bool] \<Rightarrow> bool\<close> and
@@ -108,6 +112,7 @@ class Function = GZF + app +
     mkfun_typ : "mkfun : (\<Pi> x : Set. FunPred x \<rightarrow> Function)" and 
     dom_typ : "dom : Function \<rightarrow> Set" and
     ran_typ : "ran : Function \<rightarrow> Set" and
+    funspace_typ : "funspace : Set \<rightarrow> Set \<rightarrow> SetOf Function" and
     \<comment> \<open>Main axioms\<close>
     mkfun_ax : "\<forall>s : Set. \<forall>P : FunPred s. \<forall>x y. app (mkfun s P) x y 
                      \<longleftrightarrow> (x \<in> s \<and> P x y \<and> x : FunMem \<and> y : FunMem)" and
@@ -115,6 +120,8 @@ class Function = GZF + app +
     fun_ext  : "\<forall>f : Function. \<forall>g : Function. (\<forall>x y. app f x y \<longleftrightarrow> app g x y) \<longrightarrow> f = g" and 
     fun_dom  : "\<forall>f : Function. \<forall>x. x \<in> dom f \<longleftrightarrow> (\<exists>y. app f x y)" and
     fun_ran  : "\<forall>f : Function. \<forall>y. y \<in> ran f \<longleftrightarrow> (\<exists>x. app f x y)" and
+    funspace_ax : "\<forall>x : Set. \<forall>y : Set. \<forall>f : Function. 
+                      f \<in> x \<midarrow>p\<rightarrow> y \<longleftrightarrow> (dom f \<subseteq> x \<and> ran f \<subseteq> y)" and
     \<comment> \<open>Simple definitions\<close>
     FunMem_def : "FunMem = app_mem Function" and
     FunPred_def : "FunPred = (\<lambda>s P. \<forall>x : FunMem. x \<in> s \<longrightarrow> (\<exists>\<^sub>\<le>\<^sub>1 y : FunMem. P x y))"

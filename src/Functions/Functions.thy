@@ -1,5 +1,6 @@
 theory Functions
   imports "../GZF/SetComprehension" "../GZF/SetCombinators"
+  abbrevs "pspace" = \<open>\<midarrow>p\<rightarrow>\<close>
 begin
 
 context Function begin
@@ -595,7 +596,33 @@ proof (rule tfunI[OF lam_fun[OF x]])
   moreover have "app (lam x F) b (F b)" using lam_iff[OF x Fmem] \<open>b \<in> x\<close> by auto
   ultimately show "\<exists>c. c \<in> y \<and> app (lam x F) b c" by auto
 qed *)
+lemmas fspace_setof = funE[OF funE[OF funspace_typ]]
+lemmas fspace_mem = setof_mem[OF fspace_setof]
 
+lemma fspace_iff : 
+  assumes x : "x : Set" and y : "y : Set"
+      and f : "f : Function"
+    shows "f \<in> x \<midarrow>p\<rightarrow> y \<longleftrightarrow> dom f \<subseteq> x \<and> ran f \<subseteq> y"
+  using funspace_ax assms by auto
 
+lemma fspaceI : 
+  assumes x : "x : Set" and y : "y : Set"
+      and f : "f : Function" 
+      and "dom f \<subseteq> x" and "ran f \<subseteq> y"
+    shows "f \<in> x \<midarrow>p\<rightarrow> y"
+  using assms fspace_iff by auto
+
+lemma fspaceD :
+  assumes x : "x : Set" and y : "y : Set"
+      and f : "f \<in> x \<midarrow>p\<rightarrow> y"
+    shows "dom f \<subseteq> x \<and> ran f \<subseteq> y"
+  using fspace_iff[OF x y fspace_mem[OF x y f]] f by auto
+
+lemma fspace_triv :
+  assumes f : "f : Function"
+  shows "f \<in> dom f \<midarrow>p\<rightarrow> ran f"
+  using fspaceI[OF dom_set[OF f] ran_set[OF f] f 
+      subset_refl subset_refl] .
+     
 end
 end

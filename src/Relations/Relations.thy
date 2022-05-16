@@ -21,7 +21,26 @@ lemma brelmemI2 :
   shows "b : BinRelMem"
   using assms 
   unfolding BinRelMem_def has_ty_def tex_def by auto
-  
+
+subsection \<open>Relation space of a set\<close>
+
+lemmas relspace_setof = funE[OF relspace_typ]
+lemmas relspace_mem = setof_mem[OF relspace_setof]
+
+
+lemma relspace_iff : 
+  assumes "x : Set" "r : BinRel"
+    shows "r \<in> \<RR> x \<longleftrightarrow> field r \<subseteq> x"
+    using relspace_ax assms by auto
+
+lemmas relspaceI = iffD2[OF relspace_iff]
+lemma relspaceD : 
+  assumes "x : Set" "r \<in> \<RR> x"
+    shows "field r \<subseteq> x"
+  using iffD1[OF relspace_iff[OF _ relspace_mem]] assms by auto
+
+subsection \<open>Interpreting function feature with binary relations\<close>
+
 definition domain :: "'a \<Rightarrow> 'a"
   where "domain r \<equiv> Collect (field r) (\<lambda>a. \<exists>b. app r a b)"
 
@@ -37,6 +56,20 @@ lemma domain_iff :
 definition range :: "'a \<Rightarrow> 'a"
   where "range r \<equiv> Collect (field r) (\<lambda>b. \<exists>a. app r a b)"
 
+lemma range_iff : 
+  assumes "r : BinRel"
+  shows "y \<in> range r \<longleftrightarrow> (\<exists>x. app r x y)"
+  unfolding range_def collect_iff[OF field_set[OF assms]]
+  using field_iff assms by auto
+
+lemma field_disj :
+  assumes r : "r : BinRel" and b : "b \<in> field r"
+  obtains (dom) "b \<in> domain r"
+        | (ran) "b \<in> range r"
+  using field_iff r b 
+  unfolding tall_def domain_iff[OF r] range_iff[OF r] 
+  by metis
+
 definition converse :: "'a \<Rightarrow> 'a"
   where "converse r \<equiv> mkrel (domain r) (range r) (\<lambda>a b. app r b a)"
 
@@ -50,6 +83,10 @@ definition mk_funrel
   where "mk_funrel x P \<equiv> 
     mkrel {a \<in> x | a : BinRelMem} (Repl x (\<lambda>a b. a : BinRelMem \<and> b : BinRelMem \<and> P a b)) P"
 
+definition mk_funspace :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>
+  where "mk_funspace x y \<equiv> 
+    {f \<in> \<RR> (x \<union> y) | f : FuncRel \<and> domain f \<subseteq> x \<and> range f \<subseteq> y}"
+
 interpretation Function
   where Function = FuncRel
     and mkfun = mk_funrel
@@ -57,7 +94,14 @@ interpretation Function
     and ran = range
     and FunMem = BinRelMem
     and FunPred = FuncRelPred
+    and funspace = mk_funspace
     and Function_default = BinRelation_default oops
+
+lemma frel_brel :
+  assumes "f : FuncRel"
+  shows "f : BinRel"
+  using assms unfolding FuncRel_def
+  by (unfold_typs)
 
 lemma funrelI : 
   assumes "f : BinRel" "\<forall>a b c. app f a b \<and> app f a c \<longrightarrow> b = c"
@@ -134,7 +178,7 @@ proof -
 qed
 
 theorem BinRel_Function : 
-  "class.Function_axioms Set (\<in>) app FuncRel mk_funrel domain range BinRelMem FuncRelPred"
+  "class.Function_axioms Set (\<in>) (\<subseteq>) SetOf app FuncRel mk_funrel domain range mk_funspace BinRelMem FuncRelPred"
 proof (unfold_locales)
   show mk_funrel_typ : "mk_funrel : (\<Pi> x:Set. FuncRelPred x \<rightarrow> FuncRel)" 
   proof (rule depfunI, rule funI, rule funrelI, simp only: mk_funrel_binrel)
@@ -168,6 +212,21 @@ proof (unfold_locales)
     hence "f : BinRel" unfolding FuncRel_def by (rule intE1)
     thus "field f : Set" by (rule field_set)
   qed
+
+  show "mk_funspace : Set \<rightarrow> Set \<rightarrow> SetOf FuncRel"
+  proof (rule funI, rule funI, rule setofI)
+    fix x y assume 
+      x : "x : Set" and y : "y : Set"
+    hence "\<RR> (x \<union> y) : SetOf BinRel"  
+      using relspace_setof[OF un_set] by auto
+    moreover thus "mk_funspace x y : Set" 
+      unfolding mk_funspace_def
+      using collect_set[OF setof_set] by auto
+    fix b assume "b \<in> mk_funspace x y"
+    ultimately show "b : FuncRel"
+      unfolding mk_funspace_def
+      using collectD2[OF setof_set] by auto
+   qed
 
   show "\<forall>s : Set. \<forall>P : FuncRelPred s. 
     \<forall>x y. app (mk_funrel s P) x y = (x \<in> s \<and> P x y \<and> x : BinRelMem \<and> y : BinRelMem)"
@@ -234,6 +293,33 @@ proof (unfold_locales)
 
   show "FuncRelPred = (\<lambda>s P. \<forall>x : BinRelMem. x \<in> s \<longrightarrow> (\<exists>\<^sub>\<le>\<^sub>1 y : BinRelMem. P x y))"
     unfolding FuncRelPred_def ..
+
+  show "\<forall>x : Set. \<forall>y : Set. \<forall>f : FuncRel.
+          (f \<in> mk_funspace x y) = (domain f \<subseteq> x \<and> range f \<subseteq> y)"
+  proof (rule, rule, rule)
+    fix x y f assume 
+      x : "x : Set" and y : "y : Set" and 
+      f : "f : FuncRel"
+    hence f' : "f : BinRel" and R:"\<RR> (x \<union> y) : Set"
+      using frel_brel setof_set[OF relspace_setof[OF un_set]] by auto
+    show "f \<in> mk_funspace x y \<longleftrightarrow> domain f \<subseteq> x \<and> range f \<subseteq> y"
+    proof
+      assume "f \<in> mk_funspace x y"
+      thus "domain f \<subseteq> x \<and> range f \<subseteq> y"
+        unfolding mk_funspace_def
+        using collectD2[OF R] by auto
+    next
+      assume xy:"domain f \<subseteq> x \<and> range f \<subseteq> y" 
+      have "field f \<subseteq> x \<union> y" 
+      by (rule, unfold un_iff[OF x y], 
+          erule field_disj[OF f'], use xy in auto)
+      hence "f \<in> \<RR> (x \<union> y)"
+        using relspaceI[OF un_set[OF x y] f'] by auto
+      thus "f \<in> mk_funspace x y"
+        unfolding mk_funspace_def
+        using collectI[OF R] f xy by auto
+    qed
+  qed        
 qed
 
 end 

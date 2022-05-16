@@ -19,7 +19,9 @@ definition setrel_field
   where "setrel_field r \<equiv> RepFun r fst \<union> RepFun r snd"
 
 theorem GZF_BinRel : 
-  "class.BinRel_axioms Set (\<in>) setrel_app (SetOf (SetMem * SetMem)) mk_setrel setrel_field SetMem"
+  "class.BinRel_axioms Set (\<in>) (\<subseteq>) SetOf 
+    setrel_app (SetOf (SetMem * SetMem)) mk_setrel setrel_field 
+    (\<lambda>x. \<P> (x \<times> x)) SetMem"
 proof
   show mkrel_typ : "mk_setrel : Set \<rightarrow> Set \<rightarrow> Any \<rightarrow> SetOf (SetMem * SetMem)"
     unfolding mk_setrel_def
@@ -32,8 +34,24 @@ proof
   show "setrel_field : SetOf (SetMem * SetMem) \<rightarrow> Set" 
     unfolding setrel_field_def
   by (rule funI, rule un_set[OF repfun_set repfun_set], use setof_set in auto)
-   
-  show "\<forall>x : Set. \<forall>y : Set. \<forall>P.
+  
+  show "(\<lambda>x. \<P> (x \<times> x)) : Set \<rightarrow> SetOf (SetOf (SetMem * SetMem))"
+  proof (rule funI, rule setofI, rule pow_set[OF cprod_set], 
+         auto, rule setofI)
+    fix x r assume 
+      x : "x : Set" and r : "r \<in> \<P> (x \<times> x)"
+    thus "r : Set"  
+      using setof_mem[OF pow_setof[OF cprod_set[OF x x]]]   
+      by auto
+   fix p assume "p \<in> r" 
+   moreover have "r \<subseteq> x \<times> x" 
+      using powD[OF cprod_set[OF x x] r] .
+   ultimately show "p : SetMem * SetMem"
+    using cprod_setof_prod[OF set_setof set_setof, OF x x, THEN setof_mem]
+      by auto
+  qed
+
+ show "\<forall>x : Set. \<forall>y : Set. \<forall>P.
           \<forall>a b. setrel_app (mk_setrel x y P) a b \<longleftrightarrow> 
             (a \<in> x \<and> b \<in> y \<and> P a b \<and> a : SetMem \<and> b : SetMem)"
   proof (rule, rule, rule, rule, rule, rule)
@@ -144,6 +162,47 @@ proof
     qed
   qed
 
+  show "\<forall>x : Set. \<forall>r : SetOf (SetMem * SetMem).
+          (r \<in> \<P> (x \<times> x)) = (setrel_field r \<subseteq> x)"
+  proof (rule, rule)
+    fix x r assume x : "x : Set" and r : "r : SetOf (SetMem * SetMem)"
+    hence r' : "r : Set" using setof_set[OF r] by auto
+    show "(r \<in> \<P> (x \<times> x)) \<longleftrightarrow> (setrel_field r \<subseteq> x)"
+    proof
+      assume "r \<in> \<P> (x \<times> x)"
+      hence r_sub : "r \<subseteq> x \<times> x" 
+        using powD[OF cprod_set[OF x x]] by auto
+      show "setrel_field r \<subseteq> x"
+      proof
+        fix b assume "b \<in> setrel_field r"
+        hence "b \<in> RepFun r fst \<or> b \<in> RepFun r snd"
+          unfolding setrel_field_def un_iff[OF repfun_set repfun_set, OF r' r'] .
+        then obtain p where "p \<in> r" "b = fst p \<or> b = snd p"
+          using repfunE[OF r'] by metis
+        thus "b \<in> x"
+          using fst_set[OF x x] snd_set[OF x x] r_sub by auto
+      qed
+    next
+      assume f_sub:"setrel_field r \<subseteq> x"
+      show "r \<in> \<P> (x \<times> x)"
+      proof (rule powI[OF r' cprod_set[OF x x]], rule)
+        fix p assume "p \<in> r"
+        moreover hence 
+          "p : Pair" "fst p : SetMem" "snd p : SetMem"
+          using productD[OF setof_mem[OF r]] by auto
+        ultimately have 
+          "fst p \<in> RepFun r fst" "snd p \<in> RepFun r snd"
+          using repfunI[OF r'] by auto
+        hence "fst p \<in> x" "snd p \<in> x"
+          using f_sub un_iff[OF repfun_set repfun_set, OF r' r']
+          unfolding setrel_field_def by auto
+        thus "p \<in> x \<times> x"
+          using pair_proj_eq[OF \<open>p : Pair\<close>] 
+            cprodI_pair[OF x x, of \<open>\<tau> p\<close> \<open>\<pi> p\<close>] by auto
+      qed
+    qed
+  qed
+       
   show "SetMem = (\<lambda>b. \<exists>r : SetOf (SetMem * SetMem). \<exists>c. setrel_app r b c \<or> setrel_app r c b)"
   proof -
     have eq:"\<forall>b. b : SetMem \<longleftrightarrow> (\<exists>r : SetOf (SetMem * SetMem). \<exists>c. setrel_app r b c \<or> setrel_app r c b)"
@@ -170,13 +229,14 @@ sublocale BinRel
     and app = setrel_app
     and mkrel = mk_setrel
     and field = setrel_field
+    and relspace = \<open>(\<lambda>x. \<P> (x \<times> x))\<close>    
     and BinRelMem = SetMem
     and BinRelation_default = GZF_default
   using GZF_BinRel by intro_locales
 
 theorem GZF_Function :
-  "class.Function_axioms Set (\<in>) setrel_app
-     FuncRel mk_funrel domain range SetMem FuncRelPred"
+  "class.Function_axioms Set (\<in>) (\<subseteq>) SetOf setrel_app
+     FuncRel mk_funrel domain range mk_funspace SetMem FuncRelPred"
   using BinRel_Function .
 
 sublocale Function
@@ -185,6 +245,7 @@ sublocale Function
     and mkfun = mk_funrel
     and dom = domain
     and ran = range
+    and funspace = mk_funspace
     and FunMem = SetMem
     and FunPred = FuncRelPred
   using GZF_Function by intro_locales

@@ -1,5 +1,4 @@
-*.thy~
-*.ML~
+!*.thy
+!*.ML
 *~
-*.html
-*.pdf
+*

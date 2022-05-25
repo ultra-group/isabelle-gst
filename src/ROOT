@@ -8,13 +8,17 @@ session GST = "HOL-Eisbach" +
   sessions
     ZFC_in_HOL
   directories
+    Exception
+    Founder
     Functions
+    "Functions/Model"
     GZF
     "GZF/Model"
     ModelKit
     OPair
+    "OPair/Model"
     Ordinal
     "Ordinal/Model"
+    Relations
   theories 
-    "GZF/Model/GZF_Model"
-    "Ordinal/Model/Ordinal_Model"
+    "Founder/Test"

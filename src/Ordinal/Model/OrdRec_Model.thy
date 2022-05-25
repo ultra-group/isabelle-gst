@@ -170,32 +170,4 @@ qed
   using OrdRec_Model_mdefault_m .
 qed
 end
-
-(* typedecl d  
-
-instance d :: OrdRec_Model  sorry
-
-typedef (overloaded) d1 = \<open>Set.Collect (\<lambda>x :: d. x : M)\<close> 
-  using mdefault_m by auto
-
-setup_lifting type_definition_d1 
-
-interpretation ConnectionBase Abs_d1 Rep_d1 pcr_d1 mdefault
-  by (unfold ConnectionBase_def, rule,
-      rule type_definition_d1, unfold pcr_d1_def cr_d1_def, auto, rule mdefault_m)
- *)
-(* Can either perform lifting/instances seperately, or all together *)
-(* instantiation d1 :: GZF  sorry*)
-(* instantiation d1 :: Ordinal  sorry*)
-(* 
-instantiation d1 :: OrdRec 
-begin
-  local_setup \<open>lift_mconsts @{thms mGZF_resp} (@{typ d1}) mGZF\<close>
-  local_setup \<open>lift_mconsts @{thms mOrdinal_resp} (@{typ d1}) mOrdinal\<close>
-  local_setup \<open>lift_mconsts @{thms mOrdRec_resp} (@{typ d1}) mOrdRec\<close> 
-  instance 
-    by (intro_classes, unfold funty_eq depfunty_eq, transfer_all,
-        tactic \<open>REPEAT_DETERM (resolve_tac @{context} @{thms mGZF_axioms mOrdinal_axioms mOrdRec_axioms} 1)\<close>)  
-end
- *)
 end

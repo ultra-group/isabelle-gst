@@ -606,6 +606,14 @@ next
   thus ?thesis ..  
 qed
 
+lemma greatest_tier_subset : 
+  assumes i : "i : Ord" and j : "j : Ord"
+      and xy : "x \<subseteq> Tier i" "y \<subseteq> Tier j"
+   obtains k where "k : Ord" "x \<subseteq> Tier k" "y \<subseteq> Tier k"
+   using linear_leq[OF i j] 
+    tier_increasing_leq[OF i j] tier_increasing_leq[OF j i]
+    xy i j subset_trans by meson
+
 lemma tier_typ_setof_depsum : 
   "Tier : Ord \<rightarrow> SetOf (\<Sigma> i : Tag. \<alpha> i)"
 proof (rule funI, rule setofI[OF tier_set], auto)

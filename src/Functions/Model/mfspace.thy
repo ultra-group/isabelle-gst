@@ -28,13 +28,15 @@ proof (rule funI, rule funI, rule msetofI)
     x : "x : mSet" and y : "y : mSet"
   then obtain i x' j y' where
     i : "i : Ord" and x_eq : "x = <set, x'>" and 
-    x' : "x' : Set" and "x' \<subseteq> Tier i \<ominus> set" and
+    x' : "x' : Set" and x'_sub:"x' \<subseteq> Tier i \<ominus> set" and
     j : "j : Ord" and y_eq : "y = <set,y'>" and
-    y' : "y' : Set" and "y' \<subseteq> Tier j \<ominus> set"
+    y' : "y' : Set" and y'_sub:"y' \<subseteq> Tier j \<ominus> set"
     using mE_mset[OF mset_m] msetE by (metis)
-  then obtain k where 
+  obtain k where 
     k : "k : Ord" and "x' \<subseteq> Tier k" "y' \<subseteq> Tier k" 
-    sorry
+    using greatest_tier_subset[OF i j,
+      OF ex_subset2[OF x' tier_set[OF i] x'_sub],
+      OF ex_subset2[OF y' tier_set[OF j] y'_sub]] .
   hence 
     x'_sub : "x' \<ominus> func \<subseteq> Tier k \<ominus> func" and
     y'_sub : "y' \<ominus> func \<subseteq> Tier k \<ominus> func"

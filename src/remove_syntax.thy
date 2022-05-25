@@ -1,5 +1,5 @@
 theory remove_syntax
-imports "$ISABELLE_HOME/src/HOL/ZFC_in_HOL/ZFC_Typeclasses" 
+imports "ZFC_in_HOL.ZFC_Typeclasses" 
 begin
 
 (*Don't actually need to remove any of these..

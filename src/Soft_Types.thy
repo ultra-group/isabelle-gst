@@ -109,7 +109,7 @@ method unfold_typs =
   the definition \<open>x : P \<equiv> P x\<close> and definitions of restricted/dervied quantifiers*)
 
 
-definition Any :: "('a \<Rightarrow> bool)" where [typdef] : "Any \<equiv> (\<lambda>x. True)"
+definition Any :: "('a \<Rightarrow> bool)" (\<open>\<top>\<close>) where [typdef] : "Any \<equiv> (\<lambda>x. True)"
 
 lemma anyI [simp] : "x : Any" unfolding has_ty_def Any_def by auto
 
@@ -175,6 +175,19 @@ lemma intE2 : "x : (P \<triangle> Q) \<Longrightarrow> x : Q"
 lemma intI [typ_intro] : 
   "\<lbrakk> x : P ; x : Q \<rbrakk> \<Longrightarrow> x : (P \<triangle> Q)" 
   unfolding inter_ty_def by unfold_typs
+
+subsection \<open>Intersection types\<close>
+definition union_ty :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool)" (infix "\<mho>" 50)
+  where [typdef] : "P \<mho> Q \<equiv> \<lambda>x. x : P \<or> x : Q"
+
+lemma uniI [typ_intro] : 
+  "\<lbrakk> x : P \<or> x : Q \<rbrakk> \<Longrightarrow> x : (P \<mho> Q)" 
+  unfolding union_ty_def by unfold_typs
+
+lemma uniE : 
+  assumes "x : (P \<mho> Q)" 
+    shows "x : P \<or> x : Q" 
+  using assms unfolding union_ty_def by unfold_typs
 
 subsection \<open>Subtyping\<close>
 definition subtyp :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" (infix "<<" 45) 
@@ -258,48 +271,41 @@ ML \<open>
 fun mk_styping_trm trm typ styp = 
     ((Const ("Soft_Types.has_ty", typ --> fastype_of styp --> @{typ bool})) $ trm $ styp) 
 
-fun unfold_fun_typing trm =  
+fun unfold_fun_typing k trm =  
   let
-    fun funE (f,ty1,ty2) =
+    fun funE k (f,ty1,ty2) =
       let 
         val x_typ = domain_type (fastype_of f)
         val fx_typ = range_type (fastype_of f)
-        val x = Free ("x", x_typ)
+        val x = Free ("x"  ^ Int.toString k, x_typ)
         val typ_trm1 = mk_styping_trm x (x_typ) ty1
         val typ_trm2 = (mk_styping_trm (f $ x) (fx_typ) ty2)
       in 
-        HOLogic.mk_all ("x", x_typ, 
-          HOLogic.mk_imp (unfold_fun_typing typ_trm1, unfold_fun_typing typ_trm2))
+        HOLogic.mk_all ("x" ^ Int.toString k, x_typ, 
+          HOLogic.mk_imp (unfold_fun_typing (k+1) typ_trm1, unfold_fun_typing (k+1) typ_trm2))
       end
-    fun depfunE (f, ty1, ty2) = 
+    fun depfunE k (f, ty1, ty2) = 
       let 
         val x_typ  = domain_type (fastype_of f)
         val fx_typ = range_type (fastype_of f)
-        val x = Free ("x", x_typ)
+        val x = Free ("x" ^ Int.toString k, x_typ)
         val typ_trm1 = mk_styping_trm x x_typ ty1
         val typ_trm2 = mk_styping_trm (f $ x) fx_typ (betapply (ty2, x))
       in 
-        HOLogic.mk_all ("x", x_typ, 
-          HOLogic.mk_imp (unfold_fun_typing typ_trm1, unfold_fun_typing typ_trm2))  
+        HOLogic.mk_all ("x"  ^ Int.toString k, x_typ, 
+          HOLogic.mk_imp (unfold_fun_typing (k+1) typ_trm1, unfold_fun_typing (k+1) typ_trm2))  
       end
    in
      case trm of
       ((Const ("Soft_Types.has_ty", _)) $ t $ styp) =>
         (case (t,styp) of
-          (f, ((Const ("Soft_Types.fun_ty",_)) $ p $ q)) => funE (f, p, q)
-        | (f, ((Const ("Soft_Types.depfun_ty",_)) $ p $ q)) => depfunE (f, p, q)
+          (f, ((Const ("Soft_Types.fun_ty",_)) $ p $ q)) => funE k (f, p, q)
+        | (f, ((Const ("Soft_Types.depfun_ty",_)) $ p $ q)) => depfunE k (f, p, q)
         | _ => trm)
      | _ => trm 
    end
 \<close>
 
-declare [[ML_print_depth=30]]
-ML \<open>betapply (@{term \<open>(\<lambda>x. P x)\<close>}, @{term \<open>F\<close>})\<close>
-ML \<open>@{term \<open>F : (\<Pi> x : P.  Q x \<rightarrow> R)\<close>}\<close>
-
-ML \<open>val t = unfold_fun_typing @{term \<open>F : (\<Pi> x : P.  Q x \<rightarrow> R)\<close>}\<close>
-ML \<open>val t' = unfold_fun_typing @{term \<open>F x : Q x \<rightarrow> R\<close>}\<close>
-ML \<open>Thm.cterm_of @{context} t\<close>
 ML \<open>
 fun is_typing ((Const ("Soft_Types.has_ty",_)) $ _ $ _) = true
   | is_typing _ = false
@@ -365,12 +371,5 @@ fun int_ty_const T = Const("Soft_Types.inter_ty",
 fun mk_int_ty t1 t2 = (int_ty_const (domain_type (fastype_of t1))) $ t1 $ t2
 
 \<close>
-
-ML \<open>val it = strip_sftyp \<^term>\<open>(\<Pi> x:P. Q x \<rightarrow> R) \<close>\<close>
-ML \<open>map (fst o strip_type o type_of) (fst it)
-\<close>
-
-
-
 
 end

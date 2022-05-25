@@ -1,4 +1,4 @@
-(*-------- Generating 'default' axioms --------*)
+(*-------- Generating 'otherwise' axioms --------*)
 
 (*Create a disjunction from a list of terms*)
 fun list_disj ([A]) = A
@@ -34,7 +34,7 @@ fun fun_typing_to_default_trms default i sftyp f =
       in not_xP :: fun_typing_to_default_trms default (i+1) (betapply (Q, x)) (f $ x) end   
   | _ => [HOLogic.mk_eq (f, default)]
 
-(*Translates a function soft-typing to its corresponding 'default axiom'*)
+(*Translates a function soft-typing to its corresponding otherwise axiom'*)
 fun gen_default_form default sftyping =
   let 
     val (t, sftyp) = split_typings sftyping
@@ -44,7 +44,7 @@ fun gen_default_form default sftyping =
     val abs = Term.close_schematic_term imp
   in all_until_bool abs end
 
-(*Generates a list of 'default axioms' for a feature.*)
+(*Generates a list of 'otherwise axioms' for a feature.*)
 fun gen_default_axs thy cla =
   let
     val typings = get_feature_funtypings thy cla

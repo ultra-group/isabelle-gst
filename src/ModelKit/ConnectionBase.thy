@@ -50,6 +50,17 @@ lemma typing_transfer [transfer_rule]: "(R ===> (R ===> iff) ===> iff) (:) (:)"
 lemma int_transfer [transfer_rule]: "((R ===> iff) ===> (R ===> iff) ===> (R ===> iff)) (\<triangle>) (\<triangle>)"
   unfolding rel_fun_def inter_ty_def by auto
 
+lemma un_transfer [transfer_rule]: "((R ===> iff) ===> (R ===> iff) ===> (R ===> iff)) (\<mho>) (\<mho>)"
+  unfolding rel_fun_def union_ty_def has_ty_def by auto 
+
+lemma pred_ty_eq :
+  "P = Q \<longleftrightarrow> (\<forall>x. x : P \<longleftrightarrow> x : Q)"
+  unfolding has_ty_def by auto
+
+lemma subtyp_eq :
+  "P << Q \<longleftrightarrow> (\<forall>x. x : P \<longrightarrow> x : Q)"
+  unfolding has_ty_def subtyp_def by auto
+
 subsection \<open>Transfer rules for logical constants\<close>
 
 

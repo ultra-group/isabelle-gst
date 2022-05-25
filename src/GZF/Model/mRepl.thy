@@ -49,22 +49,31 @@ lemma mrank_repfun_setof :
   shows "{mrank b | b \<in> x} : SetOf Ord"
   using repfun_setof[OF setof_set[OF x] mrank_memfun[OF x]] .
 
-lemma setof_mset :
-  assumes x:"x' : SetOf M" and b:"\<forall>b\<in>x'. \<not> Excluded set b"
-  shows "<set, x'> : mSet"
-proof (rule msetI)
+lemma setof_m_tier :
+  assumes x : "x' : SetOf M"
+  obtains i where 
+    "i : Ord" "x' \<subseteq> Tier i"
+proof -
   let ?i = "supOrd {mrank b | b \<in> x'}"
-  have "?i : Ord" and "\<forall>b\<in>x'. mrank b \<le> ?i"
+  have i:"?i : Ord" and "\<forall>b\<in>x'. mrank b \<le> ?i"
     using supord_iff[OF mrank_repfun_setof[OF x] repfunI[OF setof_set[OF x] _ ord_setmem]] 
           supord_ord[OF mrank_repfun_setof[OF x]] mrank_ord[OF setof_mem[OF x]] by auto
   moreover have "\<forall>b\<in>x'. b \<in> Tier (mrank b)"
     using mrank_tier[OF setof_mem[OF x]] by auto
-  ultimately have "\<forall>b \<in> x'. b \<in> Tier ?i"
-    using tier_increasing_leq[OF mrank_ord[OF setof_mem[OF x]] \<open>?i : Ord\<close>] by auto
-  hence "\<forall>b \<in> x'. b \<in> Tier ?i \<ominus> set" 
-    using exsetI[OF tier_set[OF \<open>?i : Ord\<close>]] b by auto
+  ultimately have x':"x' \<subseteq> Tier ?i"
+    using tier_increasing_leq[OF mrank_ord[OF setof_mem[OF x]] \<open>?i : Ord\<close>] by blast
+  from i x' show ?thesis ..
+qed
+
+lemma setof_mset :
+  assumes x:"x' : SetOf M" and b:"\<forall>b\<in>x'. \<not> Excluded set b"
+  shows "<set, x'> : mSet"
+proof (rule msetI, rule setof_m_tier[OF x])
+  fix i assume "i : Ord" and "x' \<subseteq> Tier i"
+  hence "\<forall>b \<in> x'. b \<in> Tier i \<ominus> set" 
+    using exsetI[OF tier_set[OF \<open>i : Ord\<close>]] b by auto
   thus "<set,x'> : M"
-    using mI_mset[OF \<open>?i : Ord\<close> setof_set[OF x]] by auto
+    using mI_mset[OF \<open>i : Ord\<close> setof_set[OF x]] by auto
 qed
 
 lemma mrepl_typ :

@@ -23,8 +23,11 @@ lemma smem_pmem :
   "b : SetMem \<Longrightarrow> b : PairMem"
   using setmem_pair[of b b] PairMem_def
   unfolding  has_ty_def tex_def by auto
-  
 
+lemma pair_smem : 
+  "p : Pair \<Longrightarrow> p : SetMem"
+  using pair_setmem proj_eq' by metis
+  
 subsection \<open>Cartesian product\<close>
 
 definition cprod :: "['a, 'a] \<Rightarrow> 'a" (infixr \<open>\<times>\<close> 80) 

@@ -327,4 +327,7 @@ lemma disj_part :
        in auto)
 
 end
+
+ML \<open>fun tag_thm n = @{thm tagI} OF [n_ord_thm n, omega_lt_thm n]\<close>
+
 end

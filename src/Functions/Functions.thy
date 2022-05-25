@@ -16,8 +16,8 @@ section \<open>Basic properties of function application relation\<close>
 lemma funpredI : 
   assumes "\<And>b. b : FunMem \<Longrightarrow> b \<in> x \<Longrightarrow> \<exists>\<^sub>\<le>\<^sub>1 c : FunMem. P b c"
   shows "P : FunPred x"
-  using assms
-  unfolding FunPred_def has_ty_def tall_def
+  using assms FunPred_def
+  unfolding has_ty_def tall_def
   by auto
 
 lemma app_eqI :
@@ -210,14 +210,16 @@ subsection \<open>FunMem soft-type\<close>
 lemma funmemI1 : 
   assumes f:"f : Function" and app:"app f x y"
   shows "x : FunMem"
-  unfolding FunMem_def 
-  by (rule tyI, use f app in auto)
+  using FunMem_def f app  
+  unfolding has_ty_def tex_def
+  by (auto)
 
 lemma funmemI2 : 
   assumes f:"f : Function" and app:"app f x y"
   shows "y : FunMem"
-  unfolding FunMem_def 
-  by (rule tyI, use f app in auto)
+  using FunMem_def f app  
+  unfolding has_ty_def tex_def
+  by (auto)
 
 lemma dom_funmem : 
   assumes f:"f : Function" and dom:"x \<in> dom f"
@@ -244,8 +246,8 @@ lemma funmem_appI :
   lemma fmem_smem :
   assumes "b : FunMem"
   shows "b : SetMem"
-  using assms setmemI[OF dom_set domI] setmemI[OF ran_set ranI]
-  unfolding FunMem_def has_ty_def tex_def by auto
+  using FunMem_def assms setmemI[OF dom_set domI] setmemI[OF ran_set ranI]
+  unfolding has_ty_def tex_def by auto
   
 section \<open>Restrictions on functions\<close>
 
@@ -623,6 +625,16 @@ lemma fspace_triv :
   shows "f \<in> dom f \<midarrow>p\<rightarrow> ran f"
   using fspaceI[OF dom_set[OF f] ran_set[OF f] f 
       subset_refl subset_refl] .
+
+lemma fspace_trans :
+  assumes x : "x : Set" and y : "y : Set"
+      and w : "w : Set" and z : "z : Set"
+      and sub1 : "x \<subseteq> w" and sub2 : "y \<subseteq> z"
+      and f_mem : "f \<in> x \<midarrow>p\<rightarrow> y"
+    shows "f \<in> w \<midarrow>p\<rightarrow> z"
+    using fspaceI[OF w z fspace_mem[OF x y f_mem], 
+                  OF subset_trans[OF _ sub1] subset_trans[OF _ sub2]]
+          fspaceD[OF x y f_mem] by auto
      
 end
 end

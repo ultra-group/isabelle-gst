@@ -260,7 +260,7 @@ proof (unfold_locales)
       using field_iff \<open>f : BinRel\<close> by auto
   qed
 
-  show "BinRelMem = app_mem FuncRel"
+  show "\<forall>b. BinRelMem b = app_mem FuncRel b"
   proof -
     have "\<forall>b. b : BinRelMem \<longleftrightarrow> b : app_mem FuncRel"
     proof (rule)+
@@ -291,8 +291,8 @@ proof (unfold_locales)
       by presburger
   qed
 
-  show "FuncRelPred = (\<lambda>s P. \<forall>x : BinRelMem. x \<in> s \<longrightarrow> (\<exists>\<^sub>\<le>\<^sub>1 y : BinRelMem. P x y))"
-    unfolding FuncRelPred_def ..
+  show "\<forall>x P. FuncRelPred x P = (\<forall>b : BinRelMem. b \<in> x \<longrightarrow> (\<exists>\<^sub>\<le>\<^sub>1 c : BinRelMem. P b c))"
+    unfolding FuncRelPred_def by auto
 
   show "\<forall>x : Set. \<forall>y : Set. \<forall>f : FuncRel.
           (f \<in> mk_funspace x y) = (domain f \<subseteq> x \<and> range f \<subseteq> y)"

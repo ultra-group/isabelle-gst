@@ -600,6 +600,9 @@ ML \<open>fun mk_ord_thm z _ 0 = z
 ML \<open>fun n_ord_thm 0 = @{thm zero_ord}
       | n_ord_thm n = @{thm succ_ord} OF [n_ord_thm (n-1)]\<close>
 
+ML \<open>fun omega_lt_thm 0 = @{thm omega_zero}
+      | omega_lt_thm n = @{thm omega_succ} OF [n_ord_thm (n-1), omega_lt_thm (n-1)]\<close>
+
 ML \<open>fun leq_thm (i,j) =
       if j < i then error "j<i" else
       if i = j 

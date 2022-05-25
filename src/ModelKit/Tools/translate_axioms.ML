@@ -27,7 +27,7 @@ fun translate_term ctxt msig =
 fun gen_axiom_goals ctxt msig = 
   let 
     val axioms = map snd (get_locale_axioms (get_thy ctxt) (#feature msig))
-    val conv_typing = (HOLogic.mk_Trueprop o unfold_fun_typing o HOLogic.dest_Trueprop)
+    val conv_typing = (HOLogic.mk_Trueprop o unfold_fun_typing 0 o HOLogic.dest_Trueprop)
     val axioms' = map (fn phi => if is_fun_typing (HOLogic.dest_Trueprop phi) then conv_typing phi else phi) axioms
   in 
     map (translate_term ctxt msig) axioms'

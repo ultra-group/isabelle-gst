@@ -124,6 +124,12 @@ lemma ex_subset2 :
   using subset_iff exset_iff x y 
   by auto
 
+lemma ex_subset3 : 
+  assumes x:"x : Set" and y:"y : Set"
+      and sub:"x \<subseteq> y" 
+    shows "x \<ominus> i \<subseteq> y \<ominus> i"
+  using subset_iff exset_iff x y sub 
+  by auto
 
 
   

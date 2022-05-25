@@ -19,17 +19,13 @@ fun rsp_thms_tac thms ctxt = (Method.insert_tac ctxt thms 0)
 fun lift_def_ml thm iden typ trm lthy = 
   let
     val state = (lift_def_open_proof iden typ trm lthy)
-    val blast = (Method.Basic (SIMPLE_METHOD' o blast_tac), Position.no_range)
+    val fact_method = (Method.Basic (fn _ => Method.fact [thm] lthy), Position.no_range)
   in
     if Proof.goal_finished state 
       then Proof.global_immediate_proof state
-      else let 
-       val state' = (Proof.using [[([thm],[])]] state)
-       in if Proof.goal_finished state' 
-        then Proof.global_immediate_proof state'
-        else Proof.global_terminal_proof (blast, NONE) state'
-       end
-end 
+      else Proof.global_terminal_proof (fact_method, NONE) state
+  end
+ 
 
 fun has_Lfun (Type ("fun", [u,v])) =
     (case u of

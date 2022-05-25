@@ -43,6 +43,10 @@ class GZF =
     SetOf_ax    : "\<forall>\<alpha> x. SetOf \<alpha> x = (x : Set \<and> (\<forall>b. b \<in> x \<longrightarrow> b : \<alpha>))" and
     ReplPred_ax : "\<forall>x P. ReplPred x P = (\<forall>a. a \<in> x \<longrightarrow> (\<exists>\<^sub>\<le>\<^sub>1 b: SetMem. P a b))"
 
+ML \<open>val GZF = Feature
+  {cla = \<^class>\<open>GZF\<close>, deps = [], 
+   logo = \<^term>\<open>Set\<close>, cargo = \<^term>\<open>SetMem\<close>,
+   default_param = \<^term>\<open>GZF_default\<close>}\<close>
 
 class OPair = 
   fixes
@@ -62,6 +66,11 @@ class OPair =
     pair_projs : "\<forall>p : Pair. \<exists>a b. p = pair a b" and
     \<comment> \<open>Simple definitions\<close>
     PairMem_def : "\<forall>b. PairMem b = (\<exists>p : Pair. \<exists>c. p = pair b c \<or> p = pair c b)"
+
+ML \<open>val OPair = Feature
+  {cla = \<^class>\<open>OPair\<close>, deps = [], 
+   logo = \<^term>\<open>Pair\<close>, cargo = \<^term>\<open>PairMem\<close>,
+   default_param = \<^term>\<open>OPair_default\<close>}\<close>
 
 
 class app = fixes app :: "['a,'a,'a] \<Rightarrow> bool"
@@ -94,6 +103,11 @@ class BinRel = GZF + app +
     \<comment> \<open>Simple definitions\<close>
     BinRelMem_def : "BinRelMem = app_mem BinRel"
     
+ML \<open>val BinRel = Feature
+  {cla = \<^class>\<open>BinRel\<close>, deps = [GZF], 
+   logo = \<^term>\<open>BinRel\<close>, cargo = \<^term>\<open>BinRelMem\<close>,
+   default_param = \<^term>\<open>BinRelation_default\<close>}\<close>
+
 class Function = GZF + app + 
   fixes 
     \<comment> \<open>Axiomatized constants\<close>
@@ -123,8 +137,14 @@ class Function = GZF + app +
     funspace_ax : "\<forall>x : Set. \<forall>y : Set. \<forall>f : Function. 
                       f \<in> x \<midarrow>p\<rightarrow> y \<longleftrightarrow> (dom f \<subseteq> x \<and> ran f \<subseteq> y)" and
     \<comment> \<open>Simple definitions\<close>
-    FunMem_def : "FunMem = app_mem Function" and
-    FunPred_def : "FunPred = (\<lambda>s P. \<forall>x : FunMem. x \<in> s \<longrightarrow> (\<exists>\<^sub>\<le>\<^sub>1 y : FunMem. P x y))"
+    FunMem_def : "\<forall>b. FunMem b = (app_mem Function) b" and
+    FunPred_def : "\<forall>x P. FunPred x P  = (\<forall>b : FunMem. b \<in> x \<longrightarrow> (\<exists>\<^sub>\<le>\<^sub>1 c : FunMem. P b c))"
+
+ML \<open>val Function = Feature
+  {cla = \<^class>\<open>Function\<close>, deps = [GZF], 
+   logo = \<^term>\<open>Function\<close>, cargo = \<^term>\<open>FunMem\<close>,
+   default_param = \<^term>\<open>Function_default\<close>}\<close>
+
 
 section \<open>Ordinal feature\<close>
 
@@ -156,6 +176,11 @@ class Ordinal =
     \<comment> \<open>Simple definitions\<close>
     Limit_ax : "\<forall>u. Limit u \<longleftrightarrow> (Ord \<triangle> (\<lambda>\<mu>. 0 < \<mu> \<and> (\<forall>j : Ord. j < \<mu> \<longrightarrow> succ j < \<mu>))) u" 
 
+ML \<open>val Ordinal = Feature
+  {cla = \<^class>\<open>Ordinal\<close>, deps = [], 
+   logo = \<^term>\<open>Ord\<close>, cargo = \<^term>\<open>\<top>\<close>,
+   default_param = \<^term>\<open>Ordinal_default\<close>}\<close>
+
 abbreviation (in Ordinal) leq (infixl \<open>\<le>\<close> 50) where "x \<le> y \<equiv> x < succ y"
     
 class OrdRec = GZF + Ordinal + 
@@ -175,6 +200,12 @@ class OrdRec = GZF + Ordinal +
     ordrec_lim_ax :  "\<forall>G. \<forall>F. \<forall>A. \<forall>\<mu> : Limit. 
        OrdRec G F A \<mu> = G \<mu> (\<lambda>j. if j : Ord \<and> j < \<mu> then OrdRec G F A j else OrdRec_default)"                    
 
+ML \<open>val OrdReec = Feature
+  {cla = \<^class>\<open>OrdRec\<close>, deps = [], 
+   logo = \<^term>\<open>\<bottom>\<close>, cargo = \<^term>\<open>\<top>\<close>,
+   default_param = \<^term>\<open>OrdRec_default\<close>}\<close>
+
+
 class Nat =
   fixes 
     \<comment> \<open>Axiomatized constants\<close>
@@ -192,11 +223,33 @@ class Nat =
     S_nonzero : "\<forall>n : Nat. \<S> n \<noteq> \<zero>" and
     nat_induct : "\<forall>P. P \<zero> \<longrightarrow> (\<forall>k : Nat. P k \<longrightarrow> P (\<S> k)) \<longrightarrow> (\<forall>n : Nat. P n)"
 
-ML_file \<open>Tools/combine_features.ML\<close>
-local_setup \<open>snd o combine_features "ZFPN" 
-      [(\<^class>\<open>GZF\<close>, Free ("Emp", @{typ 'a})), 
-       (\<^class>\<open>OPair\<close>, Free ("Emp", @{typ 'a})),
-       (\<^class>\<open>Nat\<close>, Free ("Emp", @{typ 'a}))]
-      [Free ("Set", @{typ \<open>'a \<Rightarrow> bool\<close>}), Free ("Pair", @{typ \<open>'a \<Rightarrow> bool\<close>}), Free ("Nat", @{typ \<open>'a \<Rightarrow> bool\<close>})]\<close>
-thm Repl_typ_default
+ML \<open>val Nat = Feature
+  {cla = \<^class>\<open>Nat\<close>, deps = [], 
+   logo = \<^term>\<open>Nat\<close>, cargo = \<^term>\<open>\<top>\<close>,
+   default_param = \<^term>\<open>Nat_default\<close>}\<close>
+
+class Exc =
+  fixes Exc :: \<open>'a \<Rightarrow> bool\<close>
+    and exc :: \<open>'a\<close> (\<open>\<Zspot>\<close>)
+    and Exc_default :: \<open>'a\<close> (*redunant default value, added for consistency*)
+  assumes "\<forall>b. Exc b \<longleftrightarrow> (b = \<Zspot>)"
+ML \<open>val Exc = Feature
+  {cla = \<^class>\<open>Exc\<close>, deps = [], 
+   logo = \<^term>\<open>Exc\<close>, cargo = \<^term>\<open>\<top>\<close>,
+   default_param = \<^term>\<open>Exc_default\<close>}\<close>
+
+text \<open>An example GST: ZF+\<close>
+
+ML \<open>val ZFPlus_spec = 
+  [ {feat = GZF, default_val = \<^term>\<open>\<Zspot>\<close>, blacklist = [Exc]},
+    {feat = Ordinal, default_val = \<^term>\<open>\<Zspot>\<close>, blacklist = []},
+    {feat = OPair, default_val = \<^term>\<open>\<Zspot>\<close>, blacklist = [Exc]},
+    {feat = Function, default_val = \<^term>\<open>\<Zspot>\<close>, blacklist = [Exc]},
+    {feat = Exc, default_val = \<^term>\<open>\<Zspot>\<close>, blacklist = []}]\<close>
+
+local_setup \<open>snd o mk_gst "ZFplus" ZFPlus_spec\<close>
+
+context ZFplus begin
+
+end
 end

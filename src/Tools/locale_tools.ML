@@ -11,9 +11,9 @@ fun get_locale thy loc =
 
 (*Gets axioms of locale \<open>loc\<close> in \<open>thy\<close>*)
 fun get_locale_axioms thy loc =
-  case hd (Locale.hyp_spec_of thy loc) of
-     Element.Assumes xs => map (fn (a,b) => (fst a, fst (hd b))) xs
-   | _ => error ("Couldn't get axioms of:" ^ loc) 
+  case Locale.hyp_spec_of thy loc of
+     (Element.Assumes xs) :: es => map (fn (a,b) => (fst a, fst (hd b))) xs
+   | [] => [] 
 
 fun get_locale_param_names thy loc =
   map (Binding.name o fst o fst) (Locale.params_of thy loc)

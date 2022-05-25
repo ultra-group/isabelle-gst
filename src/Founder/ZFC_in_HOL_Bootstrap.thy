@@ -250,6 +250,7 @@ ML \<open>val GZF_BinRel_ts =
    [\<^term>\<open>SetOf (SetMem * SetMem) :: V \<Rightarrow> bool\<close>,
     \<^term>\<open>mk_setrel :: V \<Rightarrow> V \<Rightarrow> (V \<Rightarrow> V \<Rightarrow> bool) \<Rightarrow> V\<close>,
     \<^term>\<open>setrel_field :: V \<Rightarrow> V\<close>,
+    \<^term>\<open>(\<lambda>x. \<P> (x \<times> x)) :: V \<Rightarrow> V\<close>,
     \<^term>\<open>SetMem :: V \<Rightarrow> bool\<close>,
     \<^term>\<open>GZF_default :: V\<close>]\<close>
 
@@ -260,6 +261,7 @@ ML \<open>val GZF_Function_ts =
    \<^term>\<open>mk_funrel :: V \<Rightarrow> (V \<Rightarrow> V \<Rightarrow> bool) \<Rightarrow> V\<close>,
    \<^term>\<open>domain :: V \<Rightarrow> V\<close>,
    \<^term>\<open>range :: V \<Rightarrow> V\<close>,
+   \<^term>\<open>mk_funspace :: V \<Rightarrow> V \<Rightarrow> V\<close>,
    \<^term>\<open>SetMem :: V \<Rightarrow> bool\<close>,
    \<^term>\<open>FuncRelPred :: V \<Rightarrow> (V \<Rightarrow> V \<Rightarrow> bool) \<Rightarrow> bool\<close>,
    \<^term>\<open>BinRelation_default :: V\<close>]\<close>

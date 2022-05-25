@@ -25,9 +25,14 @@ fun get_mcomp_name (mcomp {name,...}) = name
 fun get_mcomp_deps (mcomp {deps,...}) = 
    (fn mcomps xs => xs) deps
 
-fun resolve_mdeps []      = []
-  | resolve_mdeps (m::ms) = resolve_mdeps (get_mcomp_deps m) 
-                          @ (m :: resolve_mdeps ms) 
+fun isolate [] = []
+  | isolate (x::xs) = x :: isolate (List.filter (fn y => y <> x) xs)
+
+fun resolve_mdeps' []      = []
+  | resolve_mdeps' (m::ms) = resolve_mdeps' (get_mcomp_deps m) 
+                          @ (m :: resolve_mdeps' ms) 
+
+val resolve_mdeps = isolate o resolve_mdeps'
 
 fun mk_variants_0 i A = 
   HOLogic.mk_Trueprop (HOLogic.mk_eq 

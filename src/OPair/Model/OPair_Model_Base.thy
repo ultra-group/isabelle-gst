@@ -19,6 +19,12 @@ end
 
 local_setup \<open>snd o (mk_mcomp_class pair_model)\<close>
 
+lemma pair_model_case_typ :
+  assumes j : "j : Ord" and x : "x : Set"
+  shows "caseof_ord \<emptyset> (x \<times> x) \<emptyset> j : SetOf Pair"
+  by (rule case_ordE[OF j],
+      use cprod_setof[OF x x] emp_setof in auto)
+
 context OPair_Model begin
 
 definition mPair :: \<open>'a \<Rightarrow> bool\<close>
@@ -157,6 +163,11 @@ lemma mpmemE :
     where "j : Ord" "b \<in> Tier j \<ominus> opair"
   using assms unfolding mPairMem_def by (blast elim: mE_ex)
 
+lemma mpmem_ex :
+  assumes "b : mPairMem"
+  shows "\<not> Excluded opair b"
+  using mpmemE[OF assms] exsetD2[OF tier_set] by metis
+
 lemma mPair_mpmem : "p : mPair \<Longrightarrow> p : mPairMem" 
 proof -
   assume "p : mPair"
@@ -238,9 +249,12 @@ proof (rule funI, rule funI, rule intI)
     using mpmemI[OF succ_ord[OF \<open>k : Ord\<close>]] by simp
 qed
 
+lemmas mpair_mpair =
+  intE1[OF funE[OF funE[OF mpair_typ]]]
+
 corollary mpair_typ_ax :
-  "m\<forall>x. x : mPairMem \<longrightarrow> (m\<forall>x. x : mPairMem \<longrightarrow>
-    mpair x x : mPair \<triangle> mPairMem)"
+  "m\<forall>x. x : mPairMem \<longrightarrow> (m\<forall>y. y : mPairMem \<longrightarrow>
+    mpair x y : mPair \<triangle> mPairMem)"
    using mpair_typ
    unfolding fun_ty_def mall_def tall_def has_ty_def 
    by auto
@@ -330,4 +344,9 @@ translate_axioms mOPair_axioms : mOPair
   by (rule mpair_typ_ax, rule mpair_iff_ax, 
       rule mpair_proj_ax, rule mpmem_ax)
 
+resp_thms mOPair_rsp : mOPair
+  using mpair_m[OF mpair_mpair] OPair_Model_mdefault_m
+  unfolding mpair_def mpair'_def by auto
+
+end
 end

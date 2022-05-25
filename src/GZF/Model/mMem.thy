@@ -210,5 +210,25 @@ proof -
     using exsetD2[OF tier_set[OF \<open>j : Ord\<close>]] \<open>b \<in> x'\<close> by auto
 qed
 
+lemma not_excluded_msmem :
+  assumes b : "b : M" and b_ex  : "\<not> Excluded set b"
+  shows "b : mSetMem"
+proof (rule msetmemI[of _ \<open><set, {b}>\<close>], rule mmemI)
+  from b obtain j where 
+    j:"j : Ord" and bx:"b \<in> Tier j" 
+    using mE by auto
+  moreover hence "b : SetMem"
+    using setmemI[OF tier_set[OF j] bx] by auto
+  moreover thus "b \<in> {b}"
+    using sng_iff by auto
+  ultimately have "{b} \<subseteq> Tier j \<ominus> set"
+    using sng_iff exsetI[OF tier_set[OF j] _ b_ex] by auto
+  hence "<set, {b}> \<in> Tier (succ j)"
+    using tierI_mset[OF j sng_set[OF \<open>b : SetMem\<close>]] by auto
+  thus "<set, {b}> : mSet"
+    using msetI[OF mI[OF succ_ord[OF j]]] by auto
+qed
+
+
 end
 end

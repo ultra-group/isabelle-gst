@@ -149,8 +149,8 @@ fun mk_excluded typ cols =
 
 fun mk_slot_typs typ seq =
   let
-    val any = Const ("Soft_Types.Any", typ --> \<^typ>\<open>bool\<close>)
-    val body = mk_ord_seq (typ --> \<^typ>\<open>bool\<close>) (Bound 0) any seq
+    val none = Const ("Soft_Types.empty_typ", typ --> \<^typ>\<open>bool\<close>)
+    val body = mk_ord_seq (typ --> \<^typ>\<open>bool\<close>) (Bound 0) none seq
   in (Term.abs ("i", typ) body) end
 
 fun excluded_rule typ (exname, exdef_thm, ex_trm) (n, otrm, pred) lthy = 
@@ -203,24 +203,21 @@ fun create_slot_typ_op typ styps lthy =
 
 fun get_tags ms = (map (get_mcomp_tag) 
                 o filter (fn mcomp {variant,...} => Option.isSome variant))
-                  (resolve_mdeps ms)
+                  ms
 
-fun defn_tags typ ms lthy = 
+fun defn_tags_defaults typ ms_trms lthy = 
     let
-      val tag_idens = get_tags ms
+      val typ_name = last_field (fst (Term.dest_Type typ))
+      val tag_idens = get_tags (map fst ms_trms)
       val ords = ordinal_list typ (length tag_idens - 1)
-      val defs = map (fn (iden,trm) => 
-        (iden ^ "_" ^ last_field (fst (Term.dest_Type typ)),trm, NoSyn)) (tag_idens ~~ ords)
-    in make_defns lthy defs end
-
-(* fun defn_mdefault typ trm lthy = 
-    let val typ_name = last_field (fst (Term.dest_Type typ))
-    in make_defn ("mdefault_" ^ typ_name) trm NoSyn lthy end *)
+      val tag_defs = map (fn (iden,trm) => 
+        (iden ^ "_" ^ typ_name,trm, NoSyn)) (tag_idens ~~ ords)
+      val default_defs = map (fn (ms, trm) => 
+        ((get_mcomp_name ms) ^ "_mdefault_" ^ typ_name, trm, NoSyn)) ms_trms
+   in make_defns lthy (tag_defs @ default_defs) end
 
 fun model_implementation typ ms ex_preds styps =
-    (defn_tags typ ms)
-  (* o (defn_mdefault typ mdefault) *)
-  o (create_variants_op typ ms) 
+    (create_variants_op typ ms) 
   o (create_excluded_op typ ex_preds)
   o (create_slot_typ_op typ styps)
 

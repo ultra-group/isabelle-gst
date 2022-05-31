@@ -41,3 +41,53 @@ Urelements are often only used for esoteric purposes.
 - A **generalized set theory** (GST) is a theory that has pure sets 
   and may also have non-sets that can have internal structure 
   and impure sets that mix sets and non-sets.
+
+## Instructions for using our development:
+
+### Pre-requisites:
+
+1. Isabelle 2021-1: 
+
+Our development is built in Isabelle/HOL,
+  using the 2021-1 version of Isabelle.
+Installation instructions and documentation
+  can be found on the 
+  [Isabelle webpage](https://isabelle.in.tum.de/).
+
+2. A clone of the 
+    [Archive of Formal Proofs](https://www.isa-afp.org/download.html) 
+   (AFP):
+
+We use Paulson's ZFC_in_HOL to bootstrap our development, 
+  which is an entry in the AFP.
+The [recommended instructions](https://www.isa-afp.org/using.html)
+  for using the AFP in developments consist of making
+  the entirety of the AFP available to Isabelle.
+
+Download `afp-current.tar.gz`, then unzip into an appropriate directory `DIR`.   
+  - For UNIX based systems:
+  ``isabelle components -u DIR/afp-YYYY-MM-DD/thys``
+  - For Windows 10 using Cygwin, if `DIR` is on drive `DRIVE`:
+      ``isabelle components -u /cygdrive/DRIVE/DIR/afp/thys``
+
+
+### Installing and building Isabelle/HOL/GST: 
+
+1. Clone and this repository: 
+  ``git clone git@github.com:ultra-group/isabelle-gst.git``
+   or alternatively using HTTPS:
+  ``git clone https://github.com/ultra-group/isabelle-gst.git``
+   then navigate to the directory:
+  ``cd isabelle-gst``  
+
+2. Build heap images:
+  ``make build-heap``
+
+3. To open the development in Isabelle/jEdit, run:
+  ``isabelle jedit -l GST``
+  Alternatively load Isabelle/jEdit, and open one of the files in `src/`   
+
+### Building HTML for browsing:
+
+To build the HTML for viewing in a web browser, run:
+  ``make build-html``    

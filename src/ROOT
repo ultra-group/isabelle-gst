@@ -1,12 +1,13 @@
 chapter GST
-session GST = "HOL-Eisbach" +
+session GST = "HOL" +
   description 
     "A framework for building Generalized Set Theories in Isabelle/HOL"
   options 
     [browser_info    = true, 
      document_output = "../html/"]
   sessions
-    ZFC_in_HOL
+    "HOL-Eisbach"
+    "ZFC_in_HOL"
   directories
     Exception
     Founder

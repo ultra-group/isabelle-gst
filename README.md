@@ -16,7 +16,7 @@ This development adds Isabelle/HOL support for GSTs:
 - *Combining features* to create GSTs, also as classes.
 - *Model components* that specify schematics for building models of GSTs,
 - Integration with [Lifting and Transfer](https://www21.in.tum.de/~kuncar/documents/huffman-kuncar-cpp2013.pdf)
-  for connecting a model of a GST in a type `dᵢ` to another type `dⱼ`.  
+  for connecting a model of a GST in a type dᵢ to another type dⱼ.  
 
 <!-- ## Background
 **Sets** capture the notion of a *collection of mathematical objects*.
@@ -61,10 +61,10 @@ Make sure that the Isabelle binary is in your `$PATH` environment variable.
 
 2. A clone of [ZFC_in_HOL](https://www.isa-afp.org/entries/ZFC_in_HOL.html):
 
-We use Paulson's ZFC_in_HOL to bootstrap our development, 
-  which is an entry in Isabelle's Archive of Formal Proofs (AFP).
+We use Paulson's ZFC_in_HOL, which is an entry in Isabelle's Archive of Formal Proofs (AFP),
+ to bootstrap our development. 
 [Download](https://www.isa-afp.org/release/afp-ZFC_in_HOL-current.tar.gz)
-  the entry and unzip the contents into an appropriate directory `DIR`.
+  the entry and unpack the contents into an appropriate directory `DIR`.
 Then make `ZFC_in_HOL` available to Isabelle:  
   - For UNIX based systems:
   ```
@@ -86,7 +86,8 @@ Then make `ZFC_in_HOL` available to Isabelle:
   git clone https://github.com/ultra-group/isabelle-gst.git
   ```
  
-2. Navigate to `isabelle-gst` and build heap images:
+2. If you don't want to have to check `ZFC_in_HOL`, 
+   then navigate to `isabelle-gst` and build heap images:
   ```
   cd isabelle-gst; make build-heap
   ```
@@ -126,7 +127,7 @@ To build the HTML for output in `html/`, run:
 | `ModelKit/*.thy`  | Model building kit |
 | `ModelKit/Tools/*.ML` | Isabelle/ML code for building models of GSTs |
 | `Founder/ZFC_in_HOL_Bootstrap.thy` | Instantiating V as a GST |
-| `Founder/Test.thy` | Building ZF^+ in d₀ by building a model in V | 
+| `Founder/Test.thy` | Building ZF⁺ in d₀ by building a model in V | 
 
 
 ## Usage
@@ -168,7 +169,3 @@ ML ‹val GST_spec =
 ```
 local_setup ‹snd o mk_gst "<NAME>" GST_spec› 
 ```
-
-## Model Components
-
-1. 
